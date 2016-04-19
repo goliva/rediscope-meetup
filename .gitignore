@@ -2,8 +2,8 @@
 .recommenders/
 README.md
 RemoteSystemsTempFiles/
-.classpath	
-.project	
-.target		
-.settings
+stream/.classpath	
+stream/.project	
+stream/.target		
+stream/.settings
 
