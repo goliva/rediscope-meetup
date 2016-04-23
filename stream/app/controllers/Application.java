@@ -3,9 +3,12 @@ package controllers;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import models.Channel;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -13,6 +16,7 @@ import play.mvc.WebSocket;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import services.ChannelReplication;
 import services.Program;
 import views.html.index;
 
@@ -73,6 +77,28 @@ public class Application extends Controller {
             }
         };
         return clientWS;
+    }
+    
+    private static Map<String, ChannelReplication> replications = new HashMap<String, ChannelReplication>(); 
+    
+    public static Result replicate(String username){
+    	Logger.error("GONZALOOOO "+request().body().asJson());
+    	JsonNode content = request().body().asJson();
+    	Logger.error("GONZALOOOO "+content.toString());
+    	String sourceHost = content.get("sourceHost").textValue();
+    	Integer sourcePort = content.get("sourcePort").asInt();
+    	String destinyHost = content.get("destinyHost").textValue();;
+    	Integer destinyPort = content.get("destinyPort").asInt();
+    	ChannelReplication channelReplication = new ChannelReplication(username, sourceHost, sourcePort, destinyHost, destinyPort);
+    	channelReplication.start();
+    	replications.put(username, channelReplication);
+    	return ok(username+" is replicating");
+    }
+    
+    public static Result finishReplication(String username){
+    	replications.get(username).close();
+    	replications.remove(username);
+    	return ok(username+" is close");
     }
     
     public static Result channels() {

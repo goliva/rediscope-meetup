@@ -6,7 +6,8 @@
 GET     /                           controllers.Application.index()
 GET     /stream/:username                           controllers.Application.stream(username: String)
 GET     /broadcast/:channel                           controllers.Application.broadcast(channel: String)
-
+POST		/replicate/start/:channel				controllers.Application.replicate(channel: String)
+GET		/replicate/kill/:channel				controllers.Application.finishReplication(channel: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
