@@ -82,22 +82,25 @@ public class Application extends Controller {
     private static Map<String, ChannelReplication> replications = new HashMap<String, ChannelReplication>(); 
     
     public static Result replicate(String username){
-    	Logger.error("GONZALOOOO "+request().body().asJson());
     	JsonNode content = request().body().asJson();
-    	Logger.error("GONZALOOOO "+content.toString());
     	String sourceHost = content.get("sourceHost").textValue();
     	Integer sourcePort = content.get("sourcePort").asInt();
     	String destinyHost = content.get("destinyHost").textValue();;
     	Integer destinyPort = content.get("destinyPort").asInt();
-    	ChannelReplication channelReplication = new ChannelReplication(username, sourceHost, sourcePort, destinyHost, destinyPort);
+    	ChannelReplication channelReplication = new ChannelReplication(username+":video", sourceHost, sourcePort, destinyHost, destinyPort);
     	channelReplication.start();
-    	replications.put(username, channelReplication);
+    	replications.put(username+":video", channelReplication);
+    	ChannelReplication audioChannelReplication = new ChannelReplication(username+":audio", sourceHost, sourcePort, destinyHost, destinyPort);
+    	audioChannelReplication.start();
+    	replications.put(username+":audio", channelReplication);
     	return ok(username+" is replicating");
     }
     
     public static Result finishReplication(String username){
-    	replications.get(username).close();
-    	replications.remove(username);
+    	replications.get(username+":audio").close();
+    	replications.remove(username+":audio");
+    	replications.get(username+":video").close();
+    	replications.remove(username+":video");
     	return ok(username+" is close");
     }
     
