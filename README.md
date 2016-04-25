@@ -12,3 +12,25 @@ Client to ws://localhost:9000/broadcast/hello
 
 
 Enjoy!
+
+
+#REPLICATION
+
+
+Start replication:
+curl -H "Content-Type: application/json" -X POST -d '{"sourceHost":"ip", "sourcePort":port, "destinyHost":"ip", "destinyPort":port}' http://localhost:9000/replicate/start/:topic
+
+Example:
+curl -H "Content-Type: application/json" -X POST -d '{"sourceHost":"localhost", "sourcePort":6379, "destinyHost":"localhost", "destinyPort":6378}' http://localhost:9000/replicate/start/golza
+
+
+Stop replication:
+curl  http://localhost:9000/replicate/kill/:topic
+
+Excample:
+curl  http://localhost:9000/replicate/kill/golza
+
+
+Play 2.2.6
+
+
