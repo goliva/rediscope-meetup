@@ -162,6 +162,10 @@ server.get('/video',function(req,res){
     res.sendFile(__dirname + '/views/video.html');
 });
 
+server.get('/',function(req,res){
+    res.sendFile(__dirname + '/views/index.html');
+});
+
 server.listen(SERVER_PORT);
 
 function getChannelNameFromUrl(url){
