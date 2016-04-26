@@ -1,9 +1,9 @@
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
-stream/.classpath	
-stream/.project	
+stream/.classpath
+stream/.project
 stream/.target
 stream/.settings
 nodeserver/node_modules/
-
+*.DS_store

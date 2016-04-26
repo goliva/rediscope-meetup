@@ -1,10 +1,3 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <title>Webcam Binary.JS Demo</title>
-    <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js"></script>
-    <script>
 
         (function (document) {
 
@@ -66,7 +59,7 @@
                                 receiverPos++;
                                 if (receiverPos % receiverDataLength === 0) {
                                     receiverPos = 0;
-                                    
+
                                 }
                             }
                             receiverContext.putImageData(imageFrame, 0, 0);
@@ -96,7 +89,7 @@
 
         node.connect(context.destination);
         node.start(0);
-   
+
     }
     var client = BinaryClient('ws://10.11.8.159:4703/audio-client?channel=golza');
 
@@ -115,7 +108,7 @@
                   });
 
                   stream.on('end', function () {
-                    console.log('||| End of Audio Stream');    
+                    console.log('||| End of Audio Stream');
                   });
 
                 });
@@ -130,13 +123,3 @@
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
-    </script>
-
-</head>
-<body>
-<canvas id="sender"></canvas>
-<canvas id="receiver"></canvas>
-<video id="video" style="display:none;"></video>
-<div id="message"></div>
-</body>
-</html>

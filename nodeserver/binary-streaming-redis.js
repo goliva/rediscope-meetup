@@ -77,7 +77,7 @@ videoSubscriber.on("message", function(channel, data) {
   for(index in deletedClients){
     videoBuffers[channel].splice(deletedClients[index],1);
   }
-}); 
+});
 
 audioServer.on('connection', function(client){
   console.log('Binary Server connection started');
@@ -90,13 +90,13 @@ audioServer.on('connection', function(client){
         audioSubscriber.subscribe(channelName + ':audio');
       }
       audioPublisher.publish(channelName + ':audio',chunk.toString('base64'));
-    }); 
+    });
 
     stream.on('end', function() {
       console.log('||| Audio stream ended');
     });
   });
-}); 
+});
 
 audioClient.on('connection', function(client){
   console.log(">>>Incoming audio client");
@@ -118,24 +118,48 @@ audioSubscriber.on("message", function(channel, data) {
     }
   }catch(e){
       audioBuffers[channel][i].close();
-      deletedClients.push(i);    
+      deletedClients.push(i);
   }
 
   for(index in deletedClients){
     audioBuffers[channel].splice(deletedClients[index],1);
   }
-}); 
+});
 
 server.get('/recorder',function(req,res){
-    res.sendFile(__dirname + '/recorder.html');
+    res.sendFile(__dirname + '/views/recorder.html');
+});
+
+server.get('/styles.css',function(req,res){
+    res.sendFile(__dirname + '/static/css/styles.css');
+});
+
+server.get('/rediscope.png',function(req,res){
+    res.sendFile(__dirname + '/static/img/rediscope.png');
 });
 
 server.get('/recorder.js',function(req,res){
-    res.sendFile(__dirname + '/recorder.js');
+    res.sendFile(__dirname + '/static/js/recorder.js');
+});
+
+server.get('/video.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/video.js');
+});
+
+server.get('/modernizr.min.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/modernizr.min.js');
+});
+
+server.get('/jquery.min.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/jquery.min.js');
+});
+
+server.get('/binary.min.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/binary.min.js');
 });
 
 server.get('/video',function(req,res){
-    res.sendFile(__dirname + '/video.html');
+    res.sendFile(__dirname + '/views/video.html');
 });
 
 server.listen(SERVER_PORT);
