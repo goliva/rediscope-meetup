@@ -5,4 +5,5 @@ stream/.classpath
 stream/.project	
 stream/.target
 stream/.settings
+nodeserver/node_modules/
 
