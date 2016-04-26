@@ -1,4 +1,4 @@
-
+        var channel = getParameterByName('channel');
         (function (document) {
 
             document.addEventListener('DOMContentLoaded', function () {
@@ -10,8 +10,7 @@
                     videoSocketClient: 'ws://10.11.8.159:4706/video-client'
                 };
 
-                //var channel = getParameterByName('channel');
-                var channel = 'golza';
+                
 
                 var senderEl = document.getElementById('sender');
                 var receiverEl = document.getElementById('receiver');
@@ -91,7 +90,7 @@
         node.start(0);
 
     }
-    var client = BinaryClient('ws://10.11.8.159:4703/audio-client?channel=golza');
+    var client = BinaryClient('ws://10.11.8.159:4703/audio-client?channel=' + channel);
 
     console.log("OK");
     client.on('stream', function (stream) {

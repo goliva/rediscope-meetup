@@ -11,8 +11,10 @@
             <img src="rediscope.png" alt="rediscope"/>
         </div>
         <div class="canvas-container">
-            <canvas id="canvasPub" width="640" height="480"></canvas>
+            <canvas id="sender" width="640" height="480"></canvas>
+            <canvas id="receiver" width="640" height="480" style="display:none;"></canvas>
         </div>
+        <video id="video" style="display:none;"></video>
         <div class="controls">
             <div class="onoffswitch">
                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" />
