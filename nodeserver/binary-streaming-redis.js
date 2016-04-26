@@ -14,9 +14,9 @@ var videoServer = new BinaryServer({server: server, path: '/video-server', port:
 var videoClient = new BinaryServer({server: server, path: '/video-client', port:4706});
 
 var audioPublisher = redis.createClient();
-var audioSubscriber = redis.createClient();
+var audioSubscriber = redis.createClient(6380);
 var videoPublisher = redis.createClient();
-var videoSubscriber = redis.createClient();
+var videoSubscriber = redis.createClient(6380);
 
 var SERVER_PORT = 8000;
 
