@@ -7,10 +7,10 @@
                     grabRate: 66.7,
                     canvasWidth: 200,
                     canvasHeight: 160,
-                    videoSocketClient: 'ws://10.11.8.159:4706/video-client'
+                    videoSocketClient: 'ws://10.11.8.167:4706/video-client'
                 };
 
-                
+
 
                 var senderEl = document.getElementById('sender');
                 var receiverEl = document.getElementById('receiver');
@@ -47,6 +47,8 @@
                 document.getElementById('message').innerHTML += 'Receiving: ' + transferRate + ' KB / Sec';
 
                 videoClient.on('stream', function (s, meta) {
+                    console.log(s);
+                    console.log(meta);
                         s.on('data', function (data) {
 
                             // data is from the type 'ArrayBuffer'
@@ -90,19 +92,16 @@
         node.start(0);
 
     }
-    var client = BinaryClient('ws://10.11.8.159:4703/audio-client?channel=' + channel);
+    var client = BinaryClient('ws://10.11.8.167:4703/audio-client?channel=' + channel);
 
-    console.log("OK");
     client.on('stream', function (stream) {
                   soundController.nextTime = 0;
                   var init = false;
                   var audioCache = [];
 
-                  console.log('>>> Receiving Audio Stream');
 
                   stream.on('data', function (data) {
                     var array = new Float32Array(data);
-                    console.log("LLEGO!");
                     playSound(array);
                   });
 

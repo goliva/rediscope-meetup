@@ -1,38 +1,50 @@
 (function(window, document) {
+    var recording = false,
+          audioStream,
+          videoStream;
+
+          var settings = {
+              grabRate: 66.7,
+              canvasWidth: 200,
+              canvasHeight: 160,
+              videoSocketSrv: 'ws://localhost:4705/video-server'
+          };
+
+          var channel = getParameterByName('channel');
+
+          var senderEl = document.getElementById('sender');
+          var videoEl = document.getElementById('video');
+
+          var senderContext = senderEl.getContext('2d');
+
+          var receiverDataLength = settings.canvasWidth * settings.canvasHeight * 4;
+          var receiverPos = 0;
+          var transferRate = Math.round(((1000 / settings.grabRate) * receiverDataLength / 1024), 2);
+
+          var videoClient = new BinaryClient(settings.videoSocketSrv);
+
+          var userMedia = Modernizr.prefixed('getUserMedia', navigator);
+
     $("#myonoffswitch").change(function() {
           if(this.checked) {
               $(".ready").hide();
               $(".streaming").fadeIn();
+              recording = true;
           } else {
+              recording = false;
               $(".streaming").hide();
               $(".ready").fadeIn();
+              senderContext.fillStyle = "black";
+              senderContext.fillRect(0, 0, senderEl.width, senderEl.height);
+              var imageData = senderContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
+              videoStream.write(imageData.data);
+                  audioStream.end();
+                  videoStream.end();
+
+
+
           }
       });
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    var settings = {
-        grabRate: 66.7,
-        canvasWidth: 200,
-        canvasHeight: 160,
-        videoSocketSrv: 'ws://localhost:4705/video-server'
-    };
-
-    var channel = getParameterByName('channel');
-
-    var senderEl = document.getElementById('sender');
-    var videoEl = document.getElementById('video');
-
-    var senderContext = senderEl.getContext('2d');
-
-    var receiverDataLength = settings.canvasWidth * settings.canvasHeight * 4;
-    var receiverPos = 0;
-    var transferRate = Math.round(((1000 / settings.grabRate) * receiverDataLength / 1024), 2);
-
-    var videoClient = new BinaryClient(settings.videoSocketSrv);
-    var stream;
-
-    var userMedia = Modernizr.prefixed('getUserMedia', navigator);
 
     senderEl.width = settings.canvasWidth;
     senderEl.height = settings.canvasHeight;
@@ -49,18 +61,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     videoClient.on('open', function (s) {
         console.log("socket open");
-        stream = videoClient.createStream(channel);
+        videoStream = videoClient.createStream(channel);
     });
 
     // gets called in an certain interval and grabs the current video frame
     // and draws it into a canvas
     var grabLoop = function () {
+        if(!recording) {
+            setTimeout(grabLoop, settings.grabRate);
+            return;
+        }
+
         try {
             senderContext.drawImage(videoEl, 0, 0, settings.canvasWidth, settings.canvasHeight);
         } catch (e) {}
         var imageData = senderContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
-        if (typeof stream !== 'undefined') {
-            stream.write(imageData.data);
+        if (typeof videoStream !== 'undefined') {
+            videoStream.write(imageData.data);
         }else{
             console.log("algo paso");
         }
@@ -81,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     userMedia({video: true}, gUsuccess, gUfail);
-});
+
 
 
 function getParameterByName(name, url) {
@@ -100,7 +117,7 @@ function getParameterByName(name, url) {
 
   client.on('open', function() {
     var channel = getParameterByName('channel');
-    window.Stream = client.createStream(channel);
+    audioStream = client.createStream(channel);
 
     if (!navigator.getUserMedia)
       navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
@@ -112,16 +129,7 @@ function getParameterByName(name, url) {
       });
     } else alert('getUserMedia not supported in this browser.');
 
-    var recording = false;
 
-    window.startRecording = function() {
-      recording = true;
-    }
-
-    window.stopRecording = function() {
-      recording = false;
-      window.Stream.end();
-    }
 
     function success(e) {
       audioContext = window.AudioContext || window.webkitAudioContext;
@@ -137,8 +145,8 @@ function getParameterByName(name, url) {
         if(!recording) return;
 
         var left = e.inputBuffer.getChannelData(0);
-        console.log(left);
-        window.Stream.write(left);
+
+        audioStream.write(left);
       }
 
       audioInput.connect(recorder)
