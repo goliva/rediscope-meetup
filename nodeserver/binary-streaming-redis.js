@@ -28,6 +28,13 @@ process.setMaxListeners(0);
 //audioSubscriber.subscribe("audio");
 //videoSubscriber.subscribe("video");
 
+var connect = require('connect');
+var serveStatic = require('serve-static');
+
+connect().use(serveStatic(__dirname)).listen(8080, function(){
+    console.log('Server running on 8080...');
+});
+
 //GET VIDEO FROM BROWSER AND PUBLISH TO REDIS
 videoServer.on('connection', function(client){
   console.log('Binary Server connection started');
@@ -53,7 +60,7 @@ videoClient.on('connection', function(client) {
 
   var channelName = getChannelNameFromUrl(client._socket.upgradeReq.url);
   if(videoBuffers[channelName+':video'] !== undefined){
-    console.log(">>>Incoming audio client. Connected: " + (videoBuffers[channelName+':video'].length + 1));
+    console.log(">>>Sending video stream. Connected: " + (videoBuffers[channelName+':video'].length + 1));
     var responseStream = client.createStream('fromserver');
     var bufferStream = new Stream();
     bufferStream.pipe(responseStream);
@@ -99,28 +106,30 @@ audioServer.on('connection', function(client){
 }); 
 
 audioClient.on('connection', function(client){
-  console.log(">>>Incoming audio client");
   var channelName = getChannelNameFromUrl(client._socket.upgradeReq.url);
   if(audioBuffers[channelName+':audio'] !== undefined){
+    console.log(">>>Sending audio stream. Connected: " + (audioBuffers[channelName+':audio'].length + 1));
+    var responseStream = client.createStream('fromserver');
+    var bufferStream = new Stream();
+    bufferStream.pipe(responseStream);
     audioBuffers[channelName+':audio'].push(client);
+
   }
 });
 
 audioSubscriber.on("message", function(channel, data) {
-  var mybuffer = new Buffer(data,'base64');
   var deletedClients = [];
-  try{
-    for(var i = 0;i < audioBuffers[channel].length;i++){
-      var responseStream = audioBuffers[channel][i].createStream('fromserver');
-      var bufferStream = new Stream();
-      bufferStream.pipe(responseStream);
+  var mybuffer = new Buffer(data,'base64');
+  for(var i = 0;i < audioBuffers[channel].length;i++){
+    try{
+      var bufferStream = audioBuffers[channel][i];
       bufferStream.emit('data',mybuffer);
+    
+    }catch(e){
+        audioBuffers[channel][i].close();
+        deletedClients.push(i);    
     }
-  }catch(e){
-      audioBuffers[channel][i].close();
-      deletedClients.push(i);    
   }
-
   for(index in deletedClients){
     audioBuffers[channel].splice(deletedClients[index],1);
   }

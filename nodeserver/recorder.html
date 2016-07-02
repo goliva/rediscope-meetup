@@ -3,12 +3,43 @@
 <html>
     <head>
         <title>Stream</title>
-        <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
+    </head>
+    <body>
+    <h1>RECORDER</h1>
+        <button id="record">Start Recording</button><button id="stop">Stop Recording</button>
+
+<canvas id="sender"></canvas>
+<canvas id="receiver"></canvas>
+<video id="video" style="display:none;"></video>  
+<div id="message"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js"></script>
         <script type="text/javascript">
-            (function (document) {
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+        </script>
+        <script src="recorder.js"></script>
+        <script type="text/javascript">
 
-            document.addEventListener('DOMContentLoaded', function () {
+            var video = {
+                init: function () {
+                    alert("starting");
+                },
+                stop: function () {
+                    alert("stoping");
+                }
+
+            }
+            function videoClass (document) {
+                document.addEventListener('DOMContentLoaded', function () {
 
                 var settings = {
                     grabRate: 66.7,
@@ -58,6 +89,9 @@
                     stream = videoClient.createStream(channel);
                 });
 
+                this.stopRecordingVideo = function() {
+                    window.Stream.end();
+                }
                 // gets called in an certain interval and grabs the current video frame
                 // and draws it into a canvas
                 var grabLoop = function () {
@@ -91,28 +125,19 @@
                 userMedia({video: true}, gUsuccess, gUfail);
             });
 
-        })(document);
-
-        function getParameterByName(name, url) {
-            if (!url) url = window.location.href;
-            name = name.replace(/[\[\]]/g, "\\$&");
-            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, " "));
-        }
+        };
+        var that = this;
+        function startRecording(videoObj) {
+           videoObj.init();
+        };
+        function stopRecording(videoObj) {
+            videoObj.stop();
+        };
+        
+        $('#record').on('click',function (){startRecording(video)});
+        $('#stop').on('click',function (){stopRecording(video)});
         </script>
-    </head>
-    <body>
-    <h1>RECORDER</h1>
-        <button onclick="startRecording()">Start Recording</button><button onclick="stopRecording()">Stop Recording</button><script src="recorder.js"></script>
 
-<canvas id="sender"></canvas>
-<canvas id="receiver"></canvas>
-<video id="video" style="display:none;"></video>  
-<div id="message"></div>
-  
         </body></html>
 
 
