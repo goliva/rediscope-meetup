@@ -41,7 +41,7 @@
         if(!recording) return;
         
         var left = e.inputBuffer.getChannelData(0);
-        console.log(left);
+        //console.log(left);
         window.Stream.write(left);
       }
 

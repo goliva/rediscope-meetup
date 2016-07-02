@@ -3,13 +3,27 @@
 <html>
     <head>
         <title>Stream</title>
-        <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
+
+    </head>
+    <body>
+    <h1>RECORDER</h1>
+        <button id="start-recording" onclick="startRecording()">Start Recording</button><button onclick="stopRecording()">Stop Recording</button>
+
+<canvas id="sender"></canvas>
+<canvas id="receiver"></canvas>
+<video id="video" style="display:none;"></video>  
+<div id="message"></div>
+  
+
+<script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+        <script src="recorder.js"></script>
         <script type="text/javascript">
-            (function (document) {
-
-            document.addEventListener('DOMContentLoaded', function () {
-
+            function videoGon (refDocument) {
+             console.log("gonzaa2");   
+            
+                console.log("gonzaa");
                 var settings = {
                     grabRate: 66.7,
                     canvasWidth: 200,
@@ -19,9 +33,9 @@
 
                 var channel = getParameterByName('channel');
 
-                var senderEl = document.getElementById('sender');
-                var receiverEl = document.getElementById('receiver');
-                var videoEl = document.getElementById('video');
+                var senderEl = refDocument.getElementById('sender');
+                var receiverEl = refDocument.getElementById('receiver');
+                var videoEl = refDocument.getElementById('video');
 
                 var senderContext = senderEl.getContext('2d');
                 var receiverContext = receiverEl.getContext('2d');
@@ -50,8 +64,8 @@
                     return alert('your browser is not supported');
                 }
 
-                document.getElementById('message').innerHTML = 'Sending: ' + transferRate + ' KB / Sec<br />';
-                document.getElementById('message').innerHTML += 'Receiving: ' + transferRate + ' KB / Sec';
+                refDocument.getElementById('message').innerHTML = 'Sending: ' + transferRate + ' KB / Sec<br />';
+                refDocument.getElementById('message').innerHTML += 'Receiving: ' + transferRate + ' KB / Sec';
 
                 videoClient.on('open', function (s) {
                     console.log("socket open");
@@ -89,9 +103,10 @@
                 };
 
                 userMedia({video: true}, gUsuccess, gUfail);
-            });
+            
 
-        })(document);
+        };
+       
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -102,17 +117,14 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
-        </script>
-    </head>
-    <body>
-    <h1>RECORDER</h1>
-        <button onclick="startRecording()">Start Recording</button><button onclick="stopRecording()">Stop Recording</button><script src="recorder.js"></script>
+        
+        var thatDocument = document;
 
-<canvas id="sender"></canvas>
-<canvas id="receiver"></canvas>
-<video id="video" style="display:none;"></video>  
-<div id="message"></div>
-  
+        $('#start-recording').on('click', function (){videoGon(thatDocument);  });
+
+        </script>
+
+
         </body></html>
 
 
