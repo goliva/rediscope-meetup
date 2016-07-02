@@ -9,7 +9,6 @@
         <button id="record">Start Recording</button><button id="stop">Stop Recording</button>
 
 <canvas id="sender"></canvas>
-<canvas id="receiver"></canvas>
 <video id="video" style="display:none;"></video>  
 <div id="message"></div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
@@ -28,19 +27,8 @@
         </script>
         <script src="recorder.js"></script>
         <script type="text/javascript">
-
-            var video = {
-                init: function () {
-                    alert("starting");
-                },
-                stop: function () {
-                    alert("stoping");
-                }
-
-            }
-            function videoClass (document) {
-                document.addEventListener('DOMContentLoaded', function () {
-
+            var streamOn = false;
+            function Video () {
                 var settings = {
                     grabRate: 66.7,
                     canvasWidth: 200,
@@ -49,29 +37,16 @@
                 };
 
                 var channel = getParameterByName('channel');
-
+                var stream;
                 var senderEl = document.getElementById('sender');
-                var receiverEl = document.getElementById('receiver');
                 var videoEl = document.getElementById('video');
 
                 var senderContext = senderEl.getContext('2d');
-                var receiverContext = receiverEl.getContext('2d');
-
-                var receiverDataLength = settings.canvasWidth * settings.canvasHeight * 4;
-                var receiverPos = 0;
-                var transferRate = Math.round(((1000 / settings.grabRate) * receiverDataLength / 1024), 2);
-
                 var videoClient = new BinaryClient(settings.videoSocketSrv);
-                var stream;
-
-                var imageFrame = receiverContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
                 var userMedia = Modernizr.prefixed('getUserMedia', navigator);
 
                 senderEl.width = settings.canvasWidth;
                 senderEl.height = settings.canvasHeight;
-
-                receiverEl.width = settings.canvasWidth;
-                receiverEl.height = settings.canvasHeight;
 
                 videoEl.width = settings.canvasWidth;
                 videoEl.height = settings.canvasHeight;
@@ -81,29 +56,26 @@
                     return alert('your browser is not supported');
                 }
 
-                document.getElementById('message').innerHTML = 'Sending: ' + transferRate + ' KB / Sec<br />';
-                document.getElementById('message').innerHTML += 'Receiving: ' + transferRate + ' KB / Sec';
-
                 videoClient.on('open', function (s) {
-                    console.log("socket open");
                     stream = videoClient.createStream(channel);
+
                 });
 
-                this.stopRecordingVideo = function() {
-                    window.Stream.end();
-                }
                 // gets called in an certain interval and grabs the current video frame
                 // and draws it into a canvas
                 var grabLoop = function () {
                     try {
                         senderContext.drawImage(videoEl, 0, 0, settings.canvasWidth, settings.canvasHeight);
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error(e);
+                    };
                     var imageData = senderContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
                     if (typeof stream !== 'undefined') {
                         stream.write(imageData.data);
                     }else{
                         console.log("algo paso");
                     }
+                    if (!streamOn) return;
                     setTimeout(grabLoop, settings.grabRate);
                 };
 
@@ -117,25 +89,34 @@
                 };
 
                 // no camera access...
-
                 var gUfail = function () {
                     console.log('no webcam access :-( guachin');
                 };
 
-                userMedia({video: true}, gUsuccess, gUfail);
-            });
+                this.init  = function () {
+                    streamOn = true;
+                    userMedia({video: true}, gUsuccess, gUfail);
+                },
+                this.stop = function () {
+                    streamOn = false;
+                }
 
-        };
+            }
+            
         var that = this;
-        function startRecording(videoObj) {
+        var videoObj = new Video();
+        var audioObj = new Audio(window);
+        function startRecording(videoObj, audioObj) {
            videoObj.init();
+           audioObj.init();
         };
-        function stopRecording(videoObj) {
+        function stopRecording(videoObj, audioObj) {
             videoObj.stop();
+            audioObj.stop();
         };
         
-        $('#record').on('click',function (){startRecording(video)});
-        $('#stop').on('click',function (){stopRecording(video)});
+        $('#record').on('click',function (){startRecording(videoObj, audioObj)});
+        $('#stop').on('click',function (){stopRecording(videoObj, audioObj)});
         </script>
 
         </body></html>

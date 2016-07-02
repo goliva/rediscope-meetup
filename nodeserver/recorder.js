@@ -1,8 +1,8 @@
-function audioClass (window) {
+function Audio (window) {
   console.log("START!")
   var client = new BinaryClient('ws://localhost:4702/audio-server');
 
-  client.on('open', function() {
+  this.init = function() {
     var channel = getParameterByName('channel');
     window.Stream = client.createStream(channel);
 
@@ -35,9 +35,10 @@ function audioClass (window) {
       recorder.connect(context.destination); 
     }
 
-  });
+  };
 
-  this.stopRecordingAudio = function() {
+  this.stop = function() {
+    alert("apagandooo");
     window.Stream.end();
-  }
+  };
 };
