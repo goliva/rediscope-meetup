@@ -25,9 +25,59 @@
                 return decodeURIComponent(results[2].replace(/\+/g, " "));
             }
         </script>
-        <script src="recorder.js"></script>
         <script type="text/javascript">
             var streamOn = false;
+/////////
+function Audio (window) {
+  var audioClient = new BinaryClient('ws://localhost:4702/audio-server');
+  var channel = getParameterByName('channel');
+  var thatWindow = window;
+  audioClient.on('open',function (){
+    thatWindow.Stream = audioClient.createStream(channel);
+     if (!navigator.getUserMedia)
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+  });
+
+  function success(e) {
+      audioContext = thatWindow.AudioContext || thatWindow.webkitAudioContext;
+      context = new audioContext();
+
+      // the sample rate is in context.sampleRate
+      audioInput = context.createMediaStreamSource(e);
+
+      var bufferSize = 16384;
+      recorder = context.createScriptProcessor(bufferSize, 4, 4);
+
+      recorder.onaudioprocess = function(e){
+        if (!streamOn) return;
+        var left = e.inputBuffer.getChannelData(0);
+        thatWindow.Stream.write(left);
+      }
+
+      audioInput.connect(recorder)
+      recorder.connect(context.destination); 
+  };
+
+  this.init = function() {
+   
+    if (navigator.getUserMedia) {
+      navigator.getUserMedia({audio:true}, success, function(e) {
+        alert('Error capturing audio.');
+      });
+    } else alert('getUserMedia not supported in this browser.');
+
+  };
+
+  this.stop = function() {
+    thatWindow.Stream.end();
+  };
+};
+
+
+/////////
+
             function Video () {
                 var settings = {
                     grabRate: 66.7,
@@ -73,7 +123,7 @@
                     if (typeof stream !== 'undefined') {
                         stream.write(imageData.data);
                     }else{
-                        console.log("algo paso");
+                        console.error("algo paso");
                     }
                     if (!streamOn) return;
                     setTimeout(grabLoop, settings.grabRate);
@@ -84,7 +134,6 @@
                 var gUsuccess = function (stream) {
                     videoEl.src = window.URL.createObjectURL(stream);
                     videoEl.play();
-                    console.log('success');
                     setTimeout(grabLoop, settings.grabRate);
                 };
 
