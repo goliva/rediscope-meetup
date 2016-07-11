@@ -13,12 +13,10 @@ var audioClient = new BinaryServer({server: server, path: '/audio-client', port:
 var videoServer = new BinaryServer({server: server, path: '/video-server', port:4705});
 var videoClient = new BinaryServer({server: server, path: '/video-client', port:4706});
 
-var audioPublisher = redis.createClient();
-var audioSubscriber = redis.createClient();
-var videoPublisher = redis.createClient();
-var videoSubscriber = redis.createClient();
-
-var SERVER_PORT = 8000;
+var audioPublisher = redis.createClient(6379, 'localhost', {'return_buffers': true});
+var audioSubscriber = redis.createClient(6379, 'localhost', {'return_buffers': true});
+var videoPublisher = redis.createClient(6379, 'localhost', {'return_buffers': true});
+var videoSubscriber = redis.createClient(6379, 'localhost', {'return_buffers': true});
 
 var videoBuffers = {};
 var audioBuffers = {};
@@ -46,7 +44,7 @@ videoServer.on('connection', function(client){
         videoBuffers[channelName+':video'] = [];
         videoSubscriber.subscribe(channelName+ ":video");
       }
-      videoPublisher.publish(channelName + ":video",chunk.toString('base64'));
+      videoPublisher.publish(channelName + ":video",chunk);
     });
 
     stream.on('end', function() {
@@ -74,7 +72,7 @@ videoSubscriber.on("message", function(channel, data) {
   for(var i = 0;i < videoBuffers[channel].length;i++) {
     try {
       var bufferStream = videoBuffers[channel][i];
-      bufferStream.emit('data',mybuffer);
+      bufferStream.emit('data',data);
     } catch(e) {
       videoBuffers[channel][i].close();
       deletedClients.push(i);
@@ -96,7 +94,7 @@ audioServer.on('connection', function(client){
         audioBuffers[channelName+':audio'] = [];
         audioSubscriber.subscribe(channelName + ':audio');
       }
-      audioPublisher.publish(channelName + ':audio',chunk.toString('base64'));
+      audioPublisher.publish(channelName + ':audio',chunk);
     }); 
 
     stream.on('end', function() {
@@ -123,7 +121,7 @@ audioSubscriber.on("message", function(channel, data) {
   for(var i = 0;i < audioBuffers[channel].length;i++){
     try{
       var bufferStream = audioBuffers[channel][i];
-      bufferStream.emit('data',mybuffer);
+      bufferStream.emit('data',data);
     
     }catch(e){
         audioBuffers[channel][i].close();
@@ -146,8 +144,6 @@ server.get('/recorder.js',function(req,res){
 server.get('/video',function(req,res){
     res.sendFile(__dirname + '/video.html');
 });
-
-server.listen(SERVER_PORT);
 
 function getChannelNameFromUrl(url){
   return url.split('?')[1].split('=')[1];
