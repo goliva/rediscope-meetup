@@ -107,7 +107,6 @@
 
                               stream.on('data', function (data) {
                                 var array = new Float32Array(data);
-                                console.log("LLEGO!");
                                 playSound(array);
                               });
 

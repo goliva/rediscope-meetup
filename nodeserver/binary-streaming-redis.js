@@ -112,7 +112,7 @@ audioClient.on('connection', function(client){
     var responseStream = client.createStream('fromserver');
     var bufferStream = new Stream();
     bufferStream.pipe(responseStream);
-    audioBuffers[channelName+':audio'].push(client);
+    audioBuffers[channelName+':audio'].push(bufferStream);
 
   }
 });
