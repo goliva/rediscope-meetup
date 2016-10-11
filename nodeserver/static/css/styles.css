@@ -82,16 +82,12 @@ body {
 }
   .canvas-container canvas {
       background-color: black;
-      width: 640px;
-      height: 480px;
       margin: 0 auto;
       display: block;
       border: 3px #fff solid;
   }
   .video-container video {
       background-color: black;
-      width: 640px;
-      height: 480px;
       margin: 0 auto;
       display: block;
       border: 3px #fff solid;

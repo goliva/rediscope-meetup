@@ -14,19 +14,26 @@ var videoServer = new BinaryServer({server: server, path: '/video-server', port:
 var videoClient = new BinaryServer({server: server, path: '/video-client', port:4706});
 
 var audioPublisher = redis.createClient();
-var audioSubscriber = redis.createClient(6380);
+var audioSubscriber = redis.createClient(6379);
 var videoPublisher = redis.createClient();
-var videoSubscriber = redis.createClient(6380);
+var videoSubscriber = redis.createClient(6379);
 
-var SERVER_PORT = 8000;
+var SERVER_PORT = 8080;
 
 var videoBuffers = {};
 var audioBuffers = {};
 
 process.setMaxListeners(0);
 
-//audioSubscriber.subscribe("audio");
-//videoSubscriber.subscribe("video");
+function renderLowerResolution(original){
+  var newChunk = [];
+  for(var i=0; i < original.length; i=i+8){
+    for(var j=0; j < 4; j++){
+      newChunk[(i/2)+j]= original[i+j];
+    }
+  }
+  return new Buffer(newChunk);
+}
 
 //GET VIDEO FROM BROWSER AND PUBLISH TO REDIS
 videoServer.on('connection', function(client){
@@ -37,9 +44,28 @@ videoServer.on('connection', function(client){
     stream.on("data",function(chunk){
       if(videoBuffers[channelName+':video'] === undefined){
         videoBuffers[channelName+':video'] = [];
-        videoSubscriber.subscribe(channelName+ ":video");
+        videoBuffers[channelName+'10:video'] = [];
+        videoBuffers[channelName+'9:video'] = [];
+        videoBuffers[channelName+'8:video'] = [];
+        videoBuffers[channelName+'7:video'] = [];
+        videoBuffers[channelName+'6:video'] = [];
+        videoSubscriber.subscribe(channelName+ "10:video");
+        videoSubscriber.subscribe(channelName+ "9:video");
+        videoSubscriber.subscribe(channelName+ "8:video");
+        videoSubscriber.subscribe(channelName+ "7:video");
+        videoSubscriber.subscribe(channelName+ "6:video");
+
       }
-      videoPublisher.publish(channelName + ":video",chunk.toString('base64'));
+      videoPublisher.publish(channelName + "10:video",chunk.toString('base64'));
+      var halfResolution = renderLowerResolution(chunk);
+      videoPublisher.publish(channelName + "9:video",halfResolution.toString('base64'));
+      halfResolution = renderLowerResolution(halfResolution);
+      videoPublisher.publish(channelName + "8:video",halfResolution.toString('base64'));
+      halfResolution = renderLowerResolution(halfResolution);
+      videoPublisher.publish(channelName + "7:video",halfResolution.toString('base64'));
+      halfResolution = renderLowerResolution(halfResolution);
+      videoPublisher.publish(channelName + "6:video",halfResolution.toString('base64'));
+      
     });
 
     stream.on('end', function() {
