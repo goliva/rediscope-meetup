@@ -87,9 +87,12 @@ videoClient.on('connection', function(client) {
   }
 });
 
+var lastFrame = new Map();
+
 videoSubscriber.on("message", function(channel, data) {
   var deletedClients = [];
   var mybuffer = new Buffer(data,'base64');
+  lastFrame.set(channel, mybuffer);
   for(var i = 0;i < videoBuffers[channel].length;i++) {
     try {
       var bufferStream = videoBuffers[channel][i];
@@ -190,6 +193,15 @@ server.get('/video',function(req,res){
 
 server.get('/',function(req,res){
     res.sendFile(__dirname + '/views/index.html');
+});
+
+server.get('/getframe',function(req,res){
+    var data = lastFrame.get('golza7:video');
+    res.writeHead(200,{
+            'Content-Type': 'text/html'
+        });
+
+    res.end(JSON.stringify(data), 'utf8');
 });
 
 server.listen(SERVER_PORT);
