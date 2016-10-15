@@ -195,8 +195,8 @@ server.get('/',function(req,res){
     res.sendFile(__dirname + '/views/index.html');
 });
 
-server.get('/getframe',function(req,res){
-    var data = lastFrame.get('golza7:video');
+server.get('/getframe/:id',function(req,res){
+    var data = lastFrame.get(req.params.id+':video');
     res.writeHead(200,{
             'Content-Type': 'text/html'
         });
