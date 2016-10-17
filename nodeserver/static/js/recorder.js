@@ -1,53 +1,64 @@
 'use strict';
 
-var video;
-var canvas;
-var videoClient;
+var video = document.getElementById('video');
+var recordedBlobs = [];
 var videoStream;
-var canvasContext;
-
-function init(){
-  video = document.getElementById('video');
-  canvas = window.canvas = document.getElementById('sender');
-  canvas.width = 640;
-  canvas.height = 480;
-  canvasContext = canvas.getContext('2d');
-  videoClient = new BinaryClient("ws://localhost:4705/video-server");
-  videoClient.on('open', function (s) {
+var mediaRecorder;
+var videoClient = new BinaryClient("ws://localhost:4705/video-server");
+videoClient.on('open', function (s) {
     videoStream = videoClient.createStream("golza");
-  });
-}
-
-var captureFrame = function() {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-  var imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
-  if (typeof videoStream !== 'undefined') {
-      videoStream.write(imageData.data);
-  }
-};
+});
 
 var constraints = {
-  audio: true,
+  audio: false,
   video: true
-};
+}
 
 function handleSuccess(stream) {
-  window.stream = stream; // make stream available to browser console
-  video.srcObject = stream;
-  setInterval(function(){  
-    bla(); 
-  }, 1000);
+    video.src = window.URL.createObjectURL(stream);
+    window.stream = stream;
+    video.play();
+    startRecording();
 }
 
 function handleError(error) {
-  console.log('navigator.getUserMedia error: ', error);
+    console.log('navigator.getUserMedia error: ', error);
 }
 
-function bla(){
-  captureFrame();
-}
-
-init();
 navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
+
+function handleDataAvailable(event) {
+  if (event.data && event.data.size > 0) {
+    console.log(event.data);
+    videoStream.write(event.data);
+  }
+}
+
+function startRecording() {
+  recordedBlobs = [];
+  var options = {mimeType: 'video/webm;codecs=vp9'};
+  if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+    console.log(options.mimeType + ' is not Supported');
+    options = {mimeType: 'video/webm;codecs=vp8'};
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      console.log(options.mimeType + ' is not Supported');
+      options = {mimeType: 'video/webm'};
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.log(options.mimeType + ' is not Supported');
+        options = {mimeType: ''};
+      }
+    }
+  }
+  try {
+    mediaRecorder = new MediaRecorder(window.stream, options);
+  } catch (e) {
+    console.error('Exception while creating MediaRecorder: ' + e);
+    alert('Exception while creating MediaRecorder: '
+      + e + '. mimeType: ' + options.mimeType);
+    return;
+  }
+  console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+  mediaRecorder.ondataavailable = handleDataAvailable;
+  mediaRecorder.start(1000); // collect 10ms of data
+  console.log('MediaRecorder started', mediaRecorder);
+}

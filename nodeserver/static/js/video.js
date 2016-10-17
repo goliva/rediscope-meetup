@@ -75,26 +75,23 @@ function getChannelDefinition(){
             def =  6;
             break;
     };
-    return def;
+    return 10;
 
 }
 
 function load(){
     var channelDefinition = getChannelDefinition();
     $.ajax({
-      url: "/getframe/"+channelName+channelDefinition
+      url: "/getframe/"+channelName
     }).done(function(data) {
-      buffer.push(JSON.parse(data).data);
+        console.log(JSON.parse(data).data.length);
+      //buffer.push(JSON.parse(data).data);
     });
 }
 
 function loop(){
-    if (buffer.length > 5){
-        render();
-    };
-    if (buffer.length<20){
-        load();
-    }
+    load();
+    
 }
 
-setInterval(function(){ loop(); }, 500);
+setInterval(function(){ loop(); }, 1000);

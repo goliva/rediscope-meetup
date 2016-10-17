@@ -44,28 +44,11 @@ videoServer.on('connection', function(client){
     stream.on("data",function(chunk){
       if(videoBuffers[channelName+':video'] === undefined){
         videoBuffers[channelName+':video'] = [];
-        videoBuffers[channelName+'10:video'] = [];
-        videoBuffers[channelName+'9:video'] = [];
-        videoBuffers[channelName+'8:video'] = [];
-        videoBuffers[channelName+'7:video'] = [];
-        videoBuffers[channelName+'6:video'] = [];
-        videoSubscriber.subscribe(channelName+ "10:video");
-        videoSubscriber.subscribe(channelName+ "9:video");
-        videoSubscriber.subscribe(channelName+ "8:video");
-        videoSubscriber.subscribe(channelName+ "7:video");
-        videoSubscriber.subscribe(channelName+ "6:video");
-
+        videoSubscriber.subscribe(channelName+ ":video");
       }
-      videoPublisher.publish(channelName + "10:video",chunk.toString('base64'));
-      var halfResolution = renderLowerResolution(chunk);
-      videoPublisher.publish(channelName + "9:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "8:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "7:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "6:video",halfResolution.toString('base64'));
-      
+      //console.log(chunk.length);
+      videoPublisher.publish(channelName + ":video",chunk);
+      lastFrame.set(channelName+':video', chunk);
     });
 
     stream.on('end', function() {
@@ -92,7 +75,6 @@ var lastFrame = new Map();
 videoSubscriber.on("message", function(channel, data) {
   var deletedClients = [];
   var mybuffer = new Buffer(data,'base64');
-  lastFrame.set(channel, mybuffer);
   for(var i = 0;i < videoBuffers[channel].length;i++) {
     try {
       var bufferStream = videoBuffers[channel][i];
@@ -196,7 +178,9 @@ server.get('/',function(req,res){
 });
 
 server.get('/getframe/:id',function(req,res){
-    var data = lastFrame.get(req.params.id+':video');
+    var channel  = req.params.id+':video';
+    var data = lastFrame.get(channel);
+    //console.log("client2 "+channel+" "+data.length);  
     res.writeHead(200,{
             'Content-Type': 'text/html'
         });
