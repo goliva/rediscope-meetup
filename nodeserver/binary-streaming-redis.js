@@ -182,10 +182,11 @@ server.get('/getframe/:id',function(req,res){
     var data = lastFrame.get(channel);
     //console.log("client2 "+channel+" "+data.length);  
     res.writeHead(200,{
-            'Content-Type': 'text/html'
+            'Content-Type': 'blob'
         });
 
-    res.end(JSON.stringify(data), 'utf8');
+    res.write(data);
+    res.end();
 });
 
 server.listen(SERVER_PORT);
