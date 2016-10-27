@@ -1,36 +1,43 @@
 'use strict';
 
-var video = document.getElementById('video');
+var gumVideo = document.getElementById('orig');
+var mediaRecorder;
 var recordedBlobs = [];
 var videoStream;
-var mediaRecorder;
 var videoClient = new BinaryClient("ws://localhost:4705/video-server");
 videoClient.on('open', function (s) {
     videoStream = videoClient.createStream("golza");
 });
 
 var constraints = {
-  audio: false,
+  audio: true,
   video: true
-}
+};
 
 function handleSuccess(stream) {
-    video.src = window.URL.createObjectURL(stream);
-    window.stream = stream;
-    video.play();
-    startRecording();
+  console.log('getUserMedia() got stream: ', stream);
+  window.stream = stream;
+  if (window.URL) {
+    gumVideo.src = window.URL.createObjectURL(stream);
+  } else {
+    gumVideo.src = stream;
+  }
 }
 
 function handleError(error) {
-    console.log('navigator.getUserMedia error: ', error);
+  console.log('navigator.getUserMedia error: ', error);
 }
 
-navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
+navigator.mediaDevices.getUserMedia(constraints).
+    then(handleSuccess).catch(handleError);
 
 function handleDataAvailable(event) {
   if (event.data && event.data.size > 0) {
-    console.log(event.data);
-    videoStream.write(event.data);
+    recordedBlobs.push(event.data);
+    //videoStream.write(recordedBlobs);
+    stopRecording();
+    play(recordedBlobs);
+    startRecording();
   }
 }
 
@@ -61,4 +68,21 @@ function startRecording() {
   mediaRecorder.ondataavailable = handleDataAvailable;
   mediaRecorder.start(1000); // collect 10ms of data
   console.log('MediaRecorder started', mediaRecorder);
+}
+
+function stopRecording() {
+  try{mediaRecorder.stop();}catch(e){};
+  console.log('Recorded Blobs: ', recordedBlobs);
+}
+
+
+//////Reproducir/////
+
+var recordedVideo = document.querySelector('dest');
+
+function play(a) {
+  console.log(a);
+  var superBuffer = new Blob(a, {type: 'video/webm'});
+  console.log(superBuffer);
+  recordedVideo.src = window.URL.createObjectURL(superBuffer);
 }

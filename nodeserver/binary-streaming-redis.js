@@ -46,9 +46,10 @@ videoServer.on('connection', function(client){
         videoBuffers[channelName+':video'] = [];
         videoSubscriber.subscribe(channelName+ ":video");
       }
-      //console.log(chunk.length);
-      videoPublisher.publish(channelName + ":video",chunk);
+      console.log(chunk);
+      //videoPublisher.publish(channelName + ":video",chunk);
       lastFrame.set(channelName+':video', chunk);
+      //console.log(lastFrame.get(channelName+':video').length);
     });
 
     stream.on('end', function() {
@@ -180,7 +181,7 @@ server.get('/',function(req,res){
 server.get('/getframe/:id',function(req,res){
     var channel  = req.params.id+':video';
     var data = lastFrame.get(channel);
-    //console.log("client2 "+channel+" "+data.length);  
+    console.log(lastFrame+" "+data);
     res.writeHead(200,{
             'Content-Type': 'blob'
         });
