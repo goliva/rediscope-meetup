@@ -37,7 +37,6 @@ function getParameterByName(name, url) {
 var lastTimeRender = 0;
 
 function render(){
-    if (buffer.length>1 && new Date().getTime()-lastTimeRender>1000){
         lastTimeRender = new Date().getTime();
         var data = buffer.shift();
         var dataArr = new Uint8Array(data);
@@ -53,9 +52,7 @@ function render(){
             
         }
         canvasContext.putImageData(imageFrame, 0, 0);
-    }else{
-        console.log("buffering..."+buffer.length);
-    }
+    
     
 }
 
@@ -75,26 +72,25 @@ function getChannelDefinition(){
             def =  6;
             break;
     };
-    return def;
+    return 10;
 
 }
 
 function load(){
     var channelDefinition = getChannelDefinition();
     $.ajax({
-      url: "/getframe/"+channelName+channelDefinition
+      url: "/getframe/"+channelName+channelDefinition,
+      timeout: 500
     }).done(function(data) {
       buffer.push(JSON.parse(data).data);
     });
 }
 
 function loop(){
-    if (buffer.length > 5){
-        render();
-    };
+    render();
     if (buffer.length<20){
         load();
     }
 }
 
-setInterval(function(){ loop(); }, 500);
+setInterval(function(){ loop(); }, 1000);
