@@ -5,6 +5,7 @@ var base64 = require('base64-stream');
 var Stream = require('stream');
 var redis = require("redis");
 
+
 //audio
 var audioServer = new BinaryServer({server: server, path: '/audio-server', port:4702});
 var audioClient = new BinaryServer({server: server, path: '/audio-client', port:4703});
@@ -56,6 +57,11 @@ videoServer.on('connection', function(client){
         videoSubscriber.subscribe(channelName+ "6:video");
 
       }
+      
+      var base64Data = chunk.replace(/^data:image\/png;base64,/,""),
+      binaryData = new Buffer(base64Data, 'base64').toString('binary');
+      require("fs").writeFile("imgs/out"+new Date().getTime()+".png", binaryData, "binary", function(err) {});
+
       videoPublisher.publish(channelName + "10:video",chunk.toString('base64'));
       var halfResolution = renderLowerResolution(chunk);
       videoPublisher.publish(channelName + "9:video",halfResolution.toString('base64'));

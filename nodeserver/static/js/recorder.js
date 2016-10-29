@@ -24,7 +24,7 @@ var captureFrame = function() {
   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
   var imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
   if (typeof videoStream !== 'undefined') {
-      videoStream.write(imageData.data);
+      videoStream.write(canvas.toDataURL());
   }
 };
 
