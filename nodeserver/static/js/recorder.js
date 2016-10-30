@@ -3,18 +3,25 @@
 var video;
 var canvas;
 var videoClient;
+var audioClient;
 var videoStream;
-var canvasContext;
+var audioStream;
 
 function init(){
   video = document.getElementById('video');
   canvas = window.canvas = document.getElementById('sender');
   canvas.width = 640;
   canvas.height = 480;
-  canvasContext = canvas.getContext('2d');
   videoClient = new BinaryClient("ws://localhost:4705/video-server");
+  
+
   videoClient.on('open', function (s) {
     videoStream = videoClient.createStream("golza");
+  });
+
+  audioClient = new BinaryClient("ws://localhost:4702/audio-server");
+  audioClient.on('open', function (s) {
+    audioStream = audioClient.createStream("golza");
   });
 }
 
@@ -22,7 +29,6 @@ var captureFrame = function() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-  var imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
   if (typeof videoStream !== 'undefined') {
       videoStream.write(canvas.toDataURL());
   }
@@ -33,20 +39,37 @@ var constraints = {
   video: true
 };
 
+function setUpAudio(stream){
+
+  var audioContext = window.AudioContext || window.webkitAudioContext;
+  var context = new audioContext();
+
+  // the sample rate is in context.sampleRate
+  var audioInput = context.createMediaStreamSource(stream);
+
+  var bufferSize = 16384;
+  var recorder = context.createScriptProcessor(bufferSize, 4, 4);
+
+  recorder.onaudioprocess = function(stream){
+    var left = stream.inputBuffer.getChannelData(0);
+    audioStream.write(left);
+  }
+
+  audioInput.connect(recorder)
+  recorder.connect(context.destination);
+}
+
 function handleSuccess(stream) {
-  window.stream = stream; // make stream available to browser console
+  window.stream = stream;
   video.srcObject = stream;
+  setUpAudio(stream);
   setInterval(function(){  
-    bla(); 
+    captureFrame(); 
   }, 1000);
 }
 
 function handleError(error) {
   console.log('navigator.getUserMedia error: ', error);
-}
-
-function bla(){
-  captureFrame();
 }
 
 init();

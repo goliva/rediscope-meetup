@@ -124,6 +124,12 @@ audioServer.on('connection', function(client){
         audioBuffers[channelName+':audio'] = [];
         audioSubscriber.subscribe(channelName + ':audio');
       }
+      
+       /*var base64Data = chunk.replace(/^data:image\/png;base64,/,""),
+      binaryData = new Buffer(base64Data, 'base64').toString('binary');
+      require("fs").writeFile("imgs/out"+new Date().getTime()+".wav", chunk, "binary", function(err) {});*/
+
+
       audioPublisher.publish(channelName + ':audio',chunk.toString('base64'));
     });
 
@@ -213,5 +219,6 @@ server.get('/getframe/:id',function(req,res){
 server.listen(SERVER_PORT);
 
 function getChannelNameFromUrl(url){
+  console.log(url);
   return url.split('?')[1].split('=')[1];
 }
