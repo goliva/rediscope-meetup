@@ -4,7 +4,7 @@ var BinaryServer = require('binaryjs').BinaryServer;
 var base64 = require('base64-stream');
 var Stream = require('stream');
 var redis = require("redis");
-
+var fs = require("fs");
 
 //audio
 var audioServer = new BinaryServer({server: server, path: '/audio-server', port:4702});
@@ -57,10 +57,16 @@ videoServer.on('connection', function(client){
         videoSubscriber.subscribe(channelName+ "6:video");
 
       }
-      
-      var base64Data = chunk.replace(/^data:image\/png;base64,/,""),
+      var milliseconds = new Date().getTime();
+      var seconds = parseInt(milliseconds/10000);
+      if (!fs.existsSync("content/content_"+seconds)){
+          fs.mkdirSync("content/content_"+seconds);
+      }
+
+
+      var base64Data = chunk.replace(/^data:image\/jpeg;base64,/,""),
       binaryData = new Buffer(base64Data, 'base64').toString('binary');
-      require("fs").writeFile("imgs/out"+new Date().getTime()+".png", binaryData, "binary", function(err) {});
+      fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", binaryData, "binary", function(err) {});
 
       videoPublisher.publish(channelName + "10:video",chunk.toString('base64'));
       var halfResolution = renderLowerResolution(chunk);
@@ -215,6 +221,22 @@ server.get('/getframe/:id',function(req,res){
 
     res.end(JSON.stringify(data), 'utf8');
 });
+
+server.get('/getwebm/:id',function(req,res){
+    var stat = fs.statSync("content/video"+req.params.id+".webm");
+
+    
+
+    var readStream = fs.createReadStream("content/video"+req.params.id+".webm");
+    readStream.addListener('data', function(data) {
+        res.writeHead(200, {
+        'Content-Type': 'audio/webm'
+    });
+
+    res.end(data);
+    });
+});
+
 
 server.listen(SERVER_PORT);
 

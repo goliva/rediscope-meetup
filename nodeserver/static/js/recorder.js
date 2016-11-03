@@ -30,7 +30,7 @@ var captureFrame = function() {
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
   if (typeof videoStream !== 'undefined') {
-      videoStream.write(canvas.toDataURL());
+      videoStream.write(canvas.toDataURL("image/jpeg"));
   }
 };
 

@@ -1,96 +1,53 @@
-var channelName = getParameterByName('channel');
-var canvas = document.getElementById('receiver');
-canvas.width = 640;
-canvas.height = 480;
-var canvasContext = canvas.getContext('2d');
-var imageFrame = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
-var receiverPos = 0;
-var receiverDataLength = canvas.width * canvas.height * 4;
-var buffer = [];
-/*var videoClient = new BinaryClient('ws://localhost:4706/video-client?channel='+channelName);
-videoClient.on('stream', function (s, meta) {
-    s.on('data', function (data) {
-        //console.debug(data);
-        var dataArr = new Uint8Array(data);
-        for (var i = 0, len = dataArr.length; i < len; i++) {
-            imageFrame.data[receiverPos] = dataArr[i];
-            receiverPos++;
-            if (receiverPos % (receiverDataLength/8) === 0) {
-                receiverPos = 0;
-            }
-        }
-        canvasContext.putImageData(imageFrame, 0, 0);
-
-    });
-});*/
-
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+var video = document.querySelector('video');
+window.MediaSource = window.MediaSource || window.WebKitMediaSource;
+if (!!!window.MediaSource) {
+  alert('MediaSource API is not available');
 }
+var mediaSource = new MediaSource();
+video.src = window.URL.createObjectURL(mediaSource);
 
-var lastTimeRender = 0;
+function success(e) {
+  var sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vorbis,vp8"');
 
-function render(){
-        lastTimeRender = new Date().getTime();
-        var data = buffer.shift();
-        var dataArr = new Uint8Array(data);
-        var len = dataArr.length;
-        var times = receiverDataLength/len;
-        for (var i = 0; i < len; i++) {
-            for (var j=0; j<times; j++){
-                imageFrame.data[receiverPos++] = dataArr[i];    
-                if (receiverPos % receiverDataLength === 0) {
-                    receiverPos = 0;
-                }
-            }
-            
-        }
-        canvasContext.putImageData(imageFrame, 0, 0);
+  console.log('mediaSource readyState: ' + this.readyState);
+
+  var process = function (uInt8Array) {
+    var file = new Blob([uInt8Array], {type: 'video/webm'});
     
+
+    var reader = new FileReader();
+
+      // Reads aren't guaranteed to finish in the same order they're started in,
+      // so we need to read + append the next chunk after the previous reader
+      // is done (onload is fired).
+      reader.onload = function(e) {
+        sourceBuffer.appendBuffer(new Uint8Array(e.target.result));
+        if (video.paused) {
+          video.play(); 
+        }
+        
+      };
+      reader.readAsArrayBuffer(file);
     
+  }
+
+
+  GET(process);
 }
 
-function getChannelDefinition(){
-    var def = 10;
-    switch (true) {
-        case (buffer.length < 10 && buffer.length > 5):
-            def =  9;
-            break;
-        case (buffer.length < 5 && buffer.length > 4):
-            def =  8;
-            break;
-        case (buffer.length < 4 && buffer.length > 2):
-            def =  7;
-            break;
-        case (buffer.length < 2 &&buffer.length > -1):
-            def =  6;
-            break;
-    };
-    return 10;
+mediaSource.addEventListener('sourceopen', success, false);
 
-}
+function GET(callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', "/getwebm/1", true);
+  xhr.responseType = 'arraybuffer';
+  xhr.send();
 
-function load(){
-    var channelDefinition = getChannelDefinition();
-    $.ajax({
-      url: "/getframe/"+channelName+channelDefinition,
-      timeout: 500
-    }).done(function(data) {
-      buffer.push(JSON.parse(data).data);
-    });
-}
-
-function loop(){
-    render();
-    if (buffer.length<20){
-        load();
+  xhr.onload = function(e) {
+    if (xhr.status != 200) {
+      alert("Unexpected status code " + xhr.status + " for " + url);
+      return false;
     }
+    callback(new Uint8Array(xhr.response));
+  };
 }
-
-setInterval(function(){ loop(); }, 1000);
