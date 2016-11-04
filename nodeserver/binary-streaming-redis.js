@@ -5,6 +5,7 @@ var base64 = require('base64-stream');
 var Stream = require('stream');
 var redis = require("redis");
 var fs = require("fs");
+path = require('path');
 
 //audio
 var audioServer = new BinaryServer({server: server, path: '/audio-server', port:4702});
@@ -223,18 +224,17 @@ server.get('/getframe/:id',function(req,res){
 });
 
 server.get('/getwebm/:id',function(req,res){
-    var stat = fs.statSync("content/video"+req.params.id+".webm");
+    var filePath = path.join("content","video"+req.params.id+".webm");
+    var stat = fs.statSync(filePath);
 
-    
-
-    var readStream = fs.createReadStream("content/video"+req.params.id+".webm");
-    readStream.addListener('data', function(data) {
-        res.writeHead(200, {
-        'Content-Type': 'audio/webm'
+    res.writeHead(200, {
+        'Content-Type': 'audio/webm',
+        'Content-Length': stat.size
     });
 
-    res.end(data);
-    });
+    var readStream = fs.createReadStream(filePath);
+    // We replaced all the event handlers with a simple call to readStream.pipe()
+    readStream.pipe(res);
 });
 
 
