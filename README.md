@@ -36,3 +36,5 @@ Play 2.2.6
 #FFMPEG
 
 ffmpeg -framerate 1 -pattern_type glob -i "content_147827212/*.jpeg" -s 320x240 video2.webm
+
+video codec: vp9

@@ -228,8 +228,10 @@ server.get('/getwebm/:id',function(req,res){
     var stat = fs.statSync(filePath);
 
     res.writeHead(200, {
-        'Content-Type': 'audio/webm',
-        'Content-Length': stat.size
+        'Content-Type': 'video/webm',
+        'Content-Length': stat.size,
+        'Access-Control-Allow-Origin':'*',
+        'Access-Control-Allow-Credentials':true
     });
 
     var readStream = fs.createReadStream(filePath);

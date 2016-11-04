@@ -7,7 +7,7 @@ var mediaSource = new MediaSource();
 video.src = window.URL.createObjectURL(mediaSource);
 
 function success(e) {
-  var sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vorbis,vp8"');
+  var sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
 
   console.log('mediaSource readyState: ' + this.readyState);
 
@@ -21,7 +21,9 @@ function success(e) {
       // so we need to read + append the next chunk after the previous reader
       // is done (onload is fired).
       reader.onload = function(e) {
+        console.log(mediaSource.duration);
         sourceBuffer.appendBuffer(new Uint8Array(e.target.result));
+        console.log(mediaSource.duration);
         if (video.paused) {
           video.play(); 
         }
