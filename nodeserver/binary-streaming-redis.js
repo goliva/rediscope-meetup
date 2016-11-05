@@ -47,10 +47,6 @@ videoServer.on('connection', function(client){
       
       videoPublisher.publish(channelName,binaryData);
     });
-
-    stream.on('end', function() {
-      console.log('||| Video stream ended');
-    });
   });
 });
 
