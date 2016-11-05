@@ -2,11 +2,9 @@ var redis = require("redis");
 var fs = require("fs");
 path = require('path');
 
-
 var videoSubscriber = redis.createClient(6379);
 
 videoSubscriber.subscribe("channels");
-
 
 videoSubscriber.on("message", function(channel, data) {
   if(channel === "channels"){
