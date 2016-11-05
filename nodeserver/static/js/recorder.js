@@ -65,7 +65,7 @@ function handleSuccess(stream) {
   setUpAudio(stream);
   setInterval(function(){  
     captureFrame(); 
-  }, 1000);
+  }, 1000/12);
 }
 
 function handleError(error) {

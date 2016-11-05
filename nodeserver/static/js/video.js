@@ -30,11 +30,11 @@ var process = function (uInt8Array) {
 
 mediaSource.addEventListener('sourceopen', success, false);
 
-var chunkId = 147835901;
+var chunkId = 0;
 var lastChunkId = 0;
 var delay = 0;
-var min_delay = 1000;
-var max_delay = 50000;
+var min_delay = 9000;
+var max_delay = 20000;
 
 function getMoreChunks(){
     if (lastChunkId == chunkId){
