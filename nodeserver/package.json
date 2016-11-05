@@ -21,6 +21,6 @@
    "binaryjs": "^0.2.1",
    "express": "^4.13.4",
    "redis": "^2.5.3",
-   "jpeg": "2.0.0"
+   "fluent-ffmpeg": "2.1.0" 
  }
 }

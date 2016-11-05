@@ -13,10 +13,13 @@ videoSubscriber.on("message", function(channel, data) {
   }else{
     var milliseconds = new Date().getTime();
     var seconds = parseInt(milliseconds/10000);
-    if (!fs.existsSync("content/content_"+channel+"_"+seconds)){
-      fs.mkdirSync("content/content_"+channel+"_"+seconds);
+    if (!fs.existsSync("content/"+channel)){
+      fs.mkdirSync("content/"+channel);
+    }
+    if (!fs.existsSync("content/"+channel+"/content_"+seconds)){
+      fs.mkdirSync("content/"+channel+"/content_"+seconds);
       videoPublisher.publish("process",channel);
     }
-    fs.writeFile("content/content_"+channel+"_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
+    fs.writeFile("content/"+channel+"/content_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
   }
 });
