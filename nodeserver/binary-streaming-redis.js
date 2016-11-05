@@ -18,7 +18,7 @@ var videoServer = new BinaryServer({server: server, path: '/video-server', port:
 /*var audioPublisher = redis.createClient();
 var audioSubscriber = redis.createClient(6379);*/
 var videoPublisher = redis.createClient();
-var videoSubscriber = redis.createClient(6379);
+//var videoSubscriber = redis.createClient(6379);
 
 var SERVER_PORT = 8080;
 
@@ -68,7 +68,7 @@ videoServer.on('connection', function(client){
 });*/
 
 var lastFrame = new Map();
-videoSubscriber.subscribe("channels");
+/*videoSubscriber.subscribe("channels");
 
 
 videoSubscriber.on("message", function(channel, data) {
@@ -82,7 +82,7 @@ videoSubscriber.on("message", function(channel, data) {
     }
     fs.writeFile("content/content_"+channel+"_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
   }
-});
+});*/
 
 /*
 audioServer.on('connection', function(client){
