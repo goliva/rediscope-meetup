@@ -52,7 +52,7 @@ function setUpAudio(stream){
 
   recorder.onaudioprocess = function(stream){
     var left = stream.inputBuffer.getChannelData(0);
-    audioStream.write(left);
+    //audioStream.write(left);
   }
 
   audioInput.connect(recorder)

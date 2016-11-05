@@ -8,22 +8,22 @@ var fs = require("fs");
 path = require('path');
 
 //audio
-var audioServer = new BinaryServer({server: server, path: '/audio-server', port:4702});
-var audioClient = new BinaryServer({server: server, path: '/audio-client', port:4703});
+/*var audioServer = new BinaryServer({server: server, path: '/audio-server', port:4702});
+var audioClient = new BinaryServer({server: server, path: '/audio-client', port:4703});*/
 
 //video
 var videoServer = new BinaryServer({server: server, path: '/video-server', port:4705});
-var videoClient = new BinaryServer({server: server, path: '/video-client', port:4706});
+//var videoClient = new BinaryServer({server: server, path: '/video-client', port:4706});
 
-var audioPublisher = redis.createClient();
-var audioSubscriber = redis.createClient(6379);
+/*var audioPublisher = redis.createClient();
+var audioSubscriber = redis.createClient(6379);*/
 var videoPublisher = redis.createClient();
 var videoSubscriber = redis.createClient(6379);
 
 var SERVER_PORT = 8080;
 
 var videoBuffers = {};
-var audioBuffers = {};
+//var audioBuffers = {};
 
 //process.setMaxListeners(0);
 
@@ -42,17 +42,16 @@ videoServer.on('connection', function(client){
         videoBuffers[channelName+':video'] = [];
         videoSubscriber.subscribe(channelName+ ":video");
       }
-      var milliseconds = new Date().getTime();
+      /*var milliseconds = new Date().getTime();
       var seconds = parseInt(milliseconds/10000);
       if (!fs.existsSync("content/content_"+seconds)){
           fs.mkdirSync("content/content_"+seconds);
-      }
+      }*/
 
 
       var base64Data = chunk.replace(/^data:image\/jpeg;base64,/,""),
       binaryData = new Buffer(base64Data, 'base64').toString('binary');
-      fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", binaryData, "binary", function(err) {});
-
+      //fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", binaryData, "binary", function(err) {});
       videoPublisher.publish(channelName + ":video",binaryData);
     });
 
@@ -63,7 +62,7 @@ videoServer.on('connection', function(client){
 });
 
 //GET VIDEO FROM REDIS AND EMIT TO CLIENT BROWSER
-videoClient.on('connection', function(client) {
+/*videoClient.on('connection', function(client) {
 
   var channelName = getChannelNameFromUrl(client._socket.upgradeReq.url);
   if(videoBuffers[channelName+':video'] !== undefined){
@@ -73,27 +72,18 @@ videoClient.on('connection', function(client) {
     bufferStream.pipe(responseStream);
     videoBuffers[channelName+':video'].push(bufferStream);
   }
-});
+});*/
 
 var lastFrame = new Map();
 
 videoSubscriber.on("message", function(channel, data) {
-  var deletedClients = [];
-  var mybuffer = new Buffer(data,'base64');
-  lastFrame.set(channel, mybuffer);
-  for(var i = 0;i < videoBuffers[channel].length;i++) {
-    try {
-      var bufferStream = videoBuffers[channel][i];
-      bufferStream.emit('data',mybuffer);
-    } catch(e) {
-      videoBuffers[channel][i].close();
-      deletedClients.push(i);
-    }
+  var milliseconds = new Date().getTime();
+  var seconds = parseInt(milliseconds/10000);
+  if (!fs.existsSync("content/content_"+seconds)){
+    fs.mkdirSync("content/content_"+seconds);
   }
 
-  for(index in deletedClients){
-    videoBuffers[channel].splice(deletedClients[index],1);
-  }
+  fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
 });
 /*
 audioServer.on('connection', function(client){
