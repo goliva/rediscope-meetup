@@ -10,8 +10,8 @@ var audioStream;
 function init(){
   video = document.getElementById('video');
   canvas = window.canvas = document.getElementById('sender');
-  canvas.width = 640;
-  canvas.height = 480;
+  canvas.width = 320;
+  canvas.height = 240;
   videoClient = new BinaryClient("ws://localhost:4705/video-server");
   
 
@@ -26,8 +26,8 @@ function init(){
 }
 
 var captureFrame = function() {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  //canvas.width = video.videoWidth;
+  //canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
   if (typeof videoStream !== 'undefined') {
       videoStream.write(canvas.toDataURL("image/jpeg"));
@@ -65,7 +65,7 @@ function handleSuccess(stream) {
   setUpAudio(stream);
   setInterval(function(){  
     captureFrame(); 
-  }, 1000/12);
+  }, 120);
 }
 
 function handleError(error) {

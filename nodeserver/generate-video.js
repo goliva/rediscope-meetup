@@ -22,7 +22,7 @@ videoSubscriber.on("message", function(channel, data) {
   fs.readdirSync("content/"+data).filter(function(file) {
   	if (file !== "content_"+seconds && file.substring(file.length-5, file.length) !== ".webm"){
   		console.log("generando para "+file);
-  		var cmd = "ffmpeg -framerate 12 -pattern_type glob -i content/"+data+"/"+file+"'/*.jpeg' -s 320x240 content/"+data+"/video"+file.substring(8)+".webm";
+  		var cmd = "ffmpeg -framerate 8 -pattern_type glob -i content/"+data+"/"+file+"'/*.jpeg' -s 320x240 content/"+data+"/video"+file.substring(8)+".webm";
   		exec(cmd, function(error, stdout, stderr){
   			if(error == null){
   				var milliseconds2 = new Date().getTime();
