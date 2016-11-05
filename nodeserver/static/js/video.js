@@ -6,7 +6,7 @@ if (!!!window.MediaSource) {
 var mediaSource = new MediaSource();
 video.src = window.URL.createObjectURL(mediaSource);
 var reader = new FileReader();
-var first = true;
+
 function success(e) {
   var sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
 
@@ -14,33 +14,18 @@ function success(e) {
 
   var process = function (uInt8Array) {
     var file = new Blob([uInt8Array], {type: 'video/webm'});
-    var duration = 0;
-
-    
-
-      // Reads aren't guaranteed to finish in the same order they're started in,
-      // so we need to read + append the next chunk after the previous reader
-      // is done (onload is fired).
-      reader.onload = function(e) {
-        console.log("Gon "+duration);
-        if (first){
-            mediaSource.sourceBuffers[0].timestampOffset=0;
-            first = false;
-        }else{
-            mediaSource.sourceBuffers[0].timestampOffset=10;
-        }
-        
+    // Reads aren't guaranteed to finish in the same order they're started in,
+    // so we need to read + append the next chunk after the previous reader
+    // is done (onload is fired).
+    reader.onload = function(e) {
+        mediaSource.sourceBuffers[0].timestampOffset=isNaN(mediaSource.duration)?0:mediaSource.duration;
         mediaSource.sourceBuffers[0].appendBuffer(new Uint8Array(e.target.result));
-        console.log(mediaSource.duration);
-        duration = mediaSource.duration;
-
         if (video.paused) {
           video.play(); 
           GET("/getwebm/2", process);
         }
-        
-      };
-      reader.readAsArrayBuffer(file);
+    };
+    reader.readAsArrayBuffer(file);
     
   }
 
