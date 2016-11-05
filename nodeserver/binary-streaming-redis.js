@@ -243,6 +243,5 @@ server.get('/getwebm/:id',function(req,res){
 server.listen(SERVER_PORT);
 
 function getChannelNameFromUrl(url){
-  console.log(url);
   return url.split('?')[1].split('=')[1];
 }
