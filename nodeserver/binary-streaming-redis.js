@@ -25,16 +25,10 @@ var SERVER_PORT = 8080;
 var videoBuffers = {};
 var audioBuffers = {};
 
-process.setMaxListeners(0);
+//process.setMaxListeners(0);
 
-function renderLowerResolution(original){
-  var newChunk = [];
-  for(var i=0; i < original.length; i=i+8){
-    for(var j=0; j < 4; j++){
-      newChunk[(i/2)+j]= original[i+j];
-    }
-  }
-  return new Buffer(newChunk);
+function getChannelNameFromUrl(url){
+  return url.split('?')[1].split('=')[1];
 }
 
 //GET VIDEO FROM BROWSER AND PUBLISH TO REDIS
@@ -46,17 +40,7 @@ videoServer.on('connection', function(client){
     stream.on("data",function(chunk){
       if(videoBuffers[channelName+':video'] === undefined){
         videoBuffers[channelName+':video'] = [];
-        videoBuffers[channelName+'10:video'] = [];
-        videoBuffers[channelName+'9:video'] = [];
-        videoBuffers[channelName+'8:video'] = [];
-        videoBuffers[channelName+'7:video'] = [];
-        videoBuffers[channelName+'6:video'] = [];
-        videoSubscriber.subscribe(channelName+ "10:video");
-        videoSubscriber.subscribe(channelName+ "9:video");
-        videoSubscriber.subscribe(channelName+ "8:video");
-        videoSubscriber.subscribe(channelName+ "7:video");
-        videoSubscriber.subscribe(channelName+ "6:video");
-
+        videoSubscriber.subscribe(channelName+ ":video");
       }
       var milliseconds = new Date().getTime();
       var seconds = parseInt(milliseconds/10000);
@@ -69,16 +53,7 @@ videoServer.on('connection', function(client){
       binaryData = new Buffer(base64Data, 'base64').toString('binary');
       fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", binaryData, "binary", function(err) {});
 
-      videoPublisher.publish(channelName + "10:video",chunk.toString('base64'));
-      var halfResolution = renderLowerResolution(chunk);
-      videoPublisher.publish(channelName + "9:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "8:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "7:video",halfResolution.toString('base64'));
-      halfResolution = renderLowerResolution(halfResolution);
-      videoPublisher.publish(channelName + "6:video",halfResolution.toString('base64'));
-      
+      videoPublisher.publish(channelName + ":video",binaryData);
     });
 
     stream.on('end', function() {
@@ -120,7 +95,7 @@ videoSubscriber.on("message", function(channel, data) {
     videoBuffers[channel].splice(deletedClients[index],1);
   }
 });
-
+/*
 audioServer.on('connection', function(client){
   console.log('Binary Server connection started');
 
@@ -132,9 +107,9 @@ audioServer.on('connection', function(client){
         audioSubscriber.subscribe(channelName + ':audio');
       }
       
-       /*var base64Data = chunk.replace(/^data:image\/png;base64,/,""),
-      binaryData = new Buffer(base64Data, 'base64').toString('binary');
-      require("fs").writeFile("imgs/out"+new Date().getTime()+".wav", chunk, "binary", function(err) {});*/
+      //var base64Data = chunk.replace(/^data:image\/png;base64,/,""),
+      //binaryData = new Buffer(base64Data, 'base64').toString('binary');
+      //require("fs").writeFile("imgs/out"+new Date().getTime()+".wav", chunk, "binary", function(err) {});
 
 
       audioPublisher.publish(channelName + ':audio',chunk.toString('base64'));
@@ -173,6 +148,7 @@ audioSubscriber.on("message", function(channel, data) {
     audioBuffers[channel].splice(deletedClients[index],1);
   }
 });
+*/
 
 server.get('/recorder',function(req,res){
     res.sendFile(__dirname + '/views/recorder.html');
@@ -241,7 +217,3 @@ server.get('/getwebm/:id',function(req,res){
 
 
 server.listen(SERVER_PORT);
-
-function getChannelNameFromUrl(url){
-  return url.split('?')[1].split('=')[1];
-}
