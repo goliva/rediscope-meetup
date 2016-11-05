@@ -22,7 +22,7 @@ var videoSubscriber = redis.createClient(6379);
 
 var SERVER_PORT = 8080;
 
-var videoBuffers = {};
+var videoBuffers = new Set();
 //var audioBuffers = {};
 
 //process.setMaxListeners(0);
@@ -38,21 +38,14 @@ videoServer.on('connection', function(client){
   client.on('stream', function(stream, channelName) {
     console.log('>>>Incoming Video stream');
     stream.on("data",function(chunk){
-      if(videoBuffers[channelName+':video'] === undefined){
-        videoBuffers[channelName+':video'] = [];
-        videoSubscriber.subscribe(channelName+ ":video");
+      if(!videoBuffers.has(channelName)){
+        videoPublisher.publish("channels",channelName);
+        videoBuffers.add(channelName);
       }
-      /*var milliseconds = new Date().getTime();
-      var seconds = parseInt(milliseconds/10000);
-      if (!fs.existsSync("content/content_"+seconds)){
-          fs.mkdirSync("content/content_"+seconds);
-      }*/
-
-
       var base64Data = chunk.replace(/^data:image\/jpeg;base64,/,""),
       binaryData = new Buffer(base64Data, 'base64').toString('binary');
-      //fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", binaryData, "binary", function(err) {});
-      videoPublisher.publish(channelName + ":video",binaryData);
+      
+      videoPublisher.publish(channelName,binaryData);
     });
 
     stream.on('end', function() {
@@ -75,16 +68,22 @@ videoServer.on('connection', function(client){
 });*/
 
 var lastFrame = new Map();
+videoSubscriber.subscribe("channels");
+
 
 videoSubscriber.on("message", function(channel, data) {
-  var milliseconds = new Date().getTime();
-  var seconds = parseInt(milliseconds/10000);
-  if (!fs.existsSync("content/content_"+seconds)){
-    fs.mkdirSync("content/content_"+seconds);
+  if(channel === "channels"){
+    videoSubscriber.subscribe(data);    
+  }else{
+    var milliseconds = new Date().getTime();
+    var seconds = parseInt(milliseconds/10000);
+    if (!fs.existsSync("content/content_"+channel+"_"+seconds)){
+      fs.mkdirSync("content/content_"+channel+"_"+seconds);
+    }
+    fs.writeFile("content/content_"+channel+"_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
   }
-
-  fs.writeFile("content/content_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
 });
+
 /*
 audioServer.on('connection', function(client){
   console.log('Binary Server connection started');
