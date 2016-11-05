@@ -31,6 +31,20 @@ function getChannelNameFromUrl(url){
   return url.split('?')[1].split('=')[1];
 }
 
+function getLastFile(channelName){
+  var last_tms = 0;
+  fs.readdirSync("content/"+channelName).filter(function(file) {
+    if(file.substring(file.length-5, file.length) === ".webm"){
+      var tms = file.substring(5,file.length-5);//5 de (video)... y 5 de ...(.webm)
+      if (parseInt(tms) > parseInt(last_tms)){
+        last_tms = tms;
+      }  
+    }
+    
+  });
+  return last_tms;
+}
+
 //GET VIDEO FROM BROWSER AND PUBLISH TO REDIS
 videoServer.on('connection', function(client){
   console.log('Binary Server connection started');
@@ -63,7 +77,7 @@ videoServer.on('connection', function(client){
   }
 });*/
 
-var lastFrame = new Map();
+//var lastFrame = new Map();
 /*videoSubscriber.subscribe("channels");
 
 
@@ -175,30 +189,48 @@ server.get('/',function(req,res){
     res.sendFile(__dirname + '/views/index.html');
 });
 
-server.get('/getframe/:id',function(req,res){
+/*server.get('/getframe/:id',function(req,res){
     var data = lastFrame.get(req.params.id+':video');
     res.writeHead(200,{
             'Content-Type': 'text/html'
         });
 
     res.end(JSON.stringify(data), 'utf8');
+});*/
+
+server.get('/getwebm/:channel/last-id',function(req,res){
+  res.status(200).send(getLastFile(req.params.channel));
 });
 
-server.get('/getwebm/:id',function(req,res){
-    var filePath = path.join("content","video"+req.params.id+".webm");
-    var stat = fs.statSync(filePath);
+server.get('/getwebm/:channel/:id',function(req,res){
+    var channelName = req.params.channel;
+    var id = req.params.id;
 
-    res.writeHead(200, {
-        'Content-Type': 'video/webm',
-        'Content-Length': stat.size,
-        'Access-Control-Allow-Origin':'*',
-        'Access-Control-Allow-Credentials':true
+    var file_path = "content/"+channelName;
+    var file_name = "video"+id+".webm";
+    fs.stat(file_path+"/"+file_name, function(err, stat) {
+        if(err != null && err.code == 'ENOENT') {
+            res.status(404).send('Not found');
+        } else if(err != null) {
+            console.error('Some other error: ', err.code);
+        } else{
+          var filePath = path.join(file_path,file_name);
+          var stat = fs.statSync(filePath);
+
+          res.writeHead(200, {
+              'Content-Type': 'video/webm',
+              'Content-Length': stat.size,
+              'Access-Control-Allow-Origin':'*',
+              'Access-Control-Allow-Credentials':true
+          });
+
+          var readStream = fs.createReadStream(filePath);
+          // We replaced all the event handlers with a simple call to readStream.pipe()
+          readStream.pipe(res);  
+        }
+        
     });
-
-    var readStream = fs.createReadStream(filePath);
-    // We replaced all the event handlers with a simple call to readStream.pipe()
-    readStream.pipe(res);
-});
-
+    
+});  
 
 server.listen(SERVER_PORT);

@@ -16,7 +16,8 @@ videoSubscriber.on("message", function(channel, data) {
   		var cmd = "ffmpeg -framerate 1 -pattern_type glob -i content/"+data+"/"+file+"'/*.jpeg' -s 320x240 content/"+data+"/video"+file.substring(8)+".webm";
   		exec(cmd, function(error, stdout, stderr){
   			if(error == null){
-  				console.log("todo ok");
+  				var milliseconds2 = new Date().getTime();
+  				console.log("todo ok: "+(milliseconds2-milliseconds));
   				deleteFolderRecursive("content/"+data+"/"+file);
   			}
 
