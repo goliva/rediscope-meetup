@@ -30,21 +30,21 @@ var process = function (uInt8Array) {
 
 mediaSource.addEventListener('sourceopen', success, false);
 
-var chunkId = 0;
-var lastChunkId = 0;
-var delay = 0;
+var chunkId = 1478569318;
+var lastChunkId = 1478569318;
+var delay = 1000;
 var min_delay = 9000;
 var max_delay = 20000;
 
 function getMoreChunks(){
-    if (lastChunkId == chunkId){
-        delay = delay*2;
+     /*if (lastChunkId == chunkId){
+       delay = delay*2;
         if (delay > max_delay){
             delay = max_delay;
         }
     } else {
         delay = min_delay;
-    }
+    }*/
     console.log("GON: "+delay+" "+chunkId+" "+lastChunkId);
     setTimeout(function (){ GET(channel, process) },delay);
     lastChunkId = chunkId;
