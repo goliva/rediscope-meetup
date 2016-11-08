@@ -8,7 +8,7 @@ video.src = window.URL.createObjectURL(mediaSource);
 var reader = new FileReader();
 
 function success(e) {
-  mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+  mediaSource.addSourceBuffer('video/webm;codecs=vp8,opus');
   console.log('mediaSource readyState: ' + this.readyState);
 }
 
@@ -30,8 +30,8 @@ var process = function (uInt8Array) {
 
 mediaSource.addEventListener('sourceopen', success, false);
 
-var chunkId = 1478569318;
-var lastChunkId = 1478569318;
+var chunkId = 0;
+var lastChunkId = 0;
 var delay = 1000;
 var min_delay = 9000;
 var max_delay = 20000;

@@ -61,7 +61,7 @@ videoServer.on('connection', function(client){
         videoPublisher.publish("channels",channelName);
         videoBuffers.add(channelName);
       }
-      fs.writeFile("content/"+channelName+"/"+seconds+".webm", chunk, "base64", function(err) {});
+      fs.writeFile("content/"+channelName+"/"+seconds+".webm", chunk, "binary", function(err) {});
       //videoPublisher.publish(channelName,chunk);
     });
   });
