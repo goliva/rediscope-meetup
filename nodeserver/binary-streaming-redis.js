@@ -35,7 +35,7 @@ function getLastFile(channelName){
   var last_tms = 0;
   fs.readdirSync("content/"+channelName).filter(function(file) {
     if(file.substring(file.length-5, file.length) === ".webm"){
-      var tms = file.substring(5,file.length-5);//5 de (video)... y 5 de ...(.webm)
+      var tms = file.substring(0,file.length-5);//5 de (video)... y 5 de ...(.webm)
       if (parseInt(tms) > parseInt(last_tms)){
         last_tms = tms;
       }  
@@ -52,14 +52,17 @@ videoServer.on('connection', function(client){
   client.on('stream', function(stream, channelName) {
     console.log('>>>Incoming Video stream');
     stream.on("data",function(chunk){
+      var milliseconds = new Date().getTime();
+      var seconds = parseInt(milliseconds/1000);
+      if (!fs.existsSync("content/"+channelName)){
+        fs.mkdirSync("content/"+channelName);
+      }
       if(!videoBuffers.has(channelName)){
         videoPublisher.publish("channels",channelName);
         videoBuffers.add(channelName);
       }
-      var base64Data = chunk.replace(/^data:image\/jpeg;base64,/,""),
-      binaryData = new Buffer(base64Data, 'base64').toString('binary');
-      
-      videoPublisher.publish(channelName,binaryData);
+      fs.writeFile("content/"+channelName+"/"+seconds+".webm", chunk, "base64", function(err) {});
+      //videoPublisher.publish(channelName,chunk);
     });
   });
 });
@@ -207,7 +210,7 @@ server.get('/getwebm/:channel/:id',function(req,res){
     var id = req.params.id;
 
     var file_path = "content/"+channelName;
-    var file_name = "video"+id+".webm";
+    var file_name = id+".webm";
     fs.stat(file_path+"/"+file_name, function(err, stat) {
         if(err != null && err.code == 'ENOENT') {
             res.status(404).send('Not found');

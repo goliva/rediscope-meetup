@@ -3,73 +3,83 @@
 var video;
 var canvas;
 var videoClient;
-var audioClient;
 var videoStream;
-var audioStream;
+var mediaRecorder;
+var recordedBlobs = [];
 
 function init(){
   video = document.getElementById('video');
-  canvas = window.canvas = document.getElementById('sender');
-  canvas.width = 320;
-  canvas.height = 240;
   videoClient = new BinaryClient("ws://localhost:4705/video-server");
-  
-
   videoClient.on('open', function (s) {
     videoStream = videoClient.createStream("golza");
   });
-
-  audioClient = new BinaryClient("ws://localhost:4702/audio-server");
-  audioClient.on('open', function (s) {
-    audioStream = audioClient.createStream("golza");
-  });
 }
-
-var captureFrame = function() {
-  //canvas.width = video.videoWidth;
-  //canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-  if (typeof videoStream !== 'undefined') {
-      videoStream.write(canvas.toDataURL("image/jpeg"));
-  }
-};
 
 var constraints = {
   audio: true,
   video: true
 };
 
-function setUpAudio(stream){
-
-  var audioContext = window.AudioContext || window.webkitAudioContext;
-  var context = new audioContext();
-
-  // the sample rate is in context.sampleRate
-  var audioInput = context.createMediaStreamSource(stream);
-
-  var bufferSize = 16384;
-  var recorder = context.createScriptProcessor(bufferSize, 4, 4);
-
-  recorder.onaudioprocess = function(stream){
-    var left = stream.inputBuffer.getChannelData(0);
-    //audioStream.write(left);
-  }
-
-  audioInput.connect(recorder)
-  recorder.connect(context.destination);
-}
-
 function handleSuccess(stream) {
   window.stream = stream;
   video.srcObject = stream;
-  setUpAudio(stream);
-  setInterval(function(){  
-    captureFrame(); 
-  }, 120);
 }
 
 function handleError(error) {
   console.log('navigator.getUserMedia error: ', error);
+}
+
+function handleDataAvailable(event) {
+  if (event.data && event.data.size > 0) {
+    recordedBlobs.push(event.data);
+    stopRecording();
+  }
+}
+
+function handleStop(event) {
+  console.log('Recorder stopped: ', event);
+  var blob = new Blob(recordedBlobs, {type: 'video/webm'});
+  videoStream.write(blob);
+  startRecording();
+}
+
+function handleStart(event) {
+  console.log('Recorder started: ', event);
+}
+
+function startRecording() {
+  recordedBlobs = [];
+  var options = {mimeType: 'video/webm;codecs=vp9'};
+  try {
+    mediaRecorder = new MediaRecorder(window.stream, options);
+  } catch (e) {
+    console.error('Exception while creating MediaRecorder: ' + e);
+    console.error('Exception while creating MediaRecorder: '
+      + e + '. mimeType: ' + options.mimeType);
+    return;
+  }
+  mediaRecorder.onstop = handleStop;
+  mediaRecorder.onstart = handleStart;
+  mediaRecorder.ondataavailable = handleDataAvailable;
+  mediaRecorder.start(1000); // collect 10ms of data
+}
+
+function stopRecording() {
+  mediaRecorder.stop();
+}
+
+function download(blob) {
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = 'test.webm';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
 }
 
 init();

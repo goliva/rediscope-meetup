@@ -16,10 +16,7 @@ videoSubscriber.on("message", function(channel, data) {
     if (!fs.existsSync("content/"+channel)){
       fs.mkdirSync("content/"+channel);
     }
-    if (!fs.existsSync("content/"+channel+"/content_"+seconds)){
-      fs.mkdirSync("content/"+channel+"/content_"+seconds);
-      videoPublisher.publish("process",channel);
-    }
-    fs.writeFile("content/"+channel+"/content_"+seconds+"/out"+milliseconds+".jpeg", data, "binary", function(err) {});
+    fs.writeFile("content/"+channel+"/"+seconds+".webm", data, "base64", function(err) {});
+    videoPublisher.publish("process",channel);
   }
 });
