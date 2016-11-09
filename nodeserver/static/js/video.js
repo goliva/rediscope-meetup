@@ -8,7 +8,7 @@ video.src = window.URL.createObjectURL(mediaSource);
 var reader = new FileReader();
 
 function success(e) {
-  mediaSource.addSourceBuffer('video/webm;codecs=vp8,opus');
+  mediaSource.addSourceBuffer('video/webm;codecs="vp8"');
   console.log('mediaSource readyState: ' + this.readyState);
 }
 
@@ -18,10 +18,12 @@ var process = function (uInt8Array) {
     // so we need to read + append the next chunk after the previous reader
     // is done (onload is fired).
     reader.onload = function(e) {
-        mediaSource.sourceBuffers[0].timestampOffset=isNaN(mediaSource.duration)?0:mediaSource.duration;
+        console.log(mediaSource);
+        mediaSource.sourceBuffers[0].timestampOffset=isNaN(mediaSource.duration)?0:10000;
         mediaSource.sourceBuffers[0].appendBuffer(new Uint8Array(e.target.result));
         if (video.paused) {
           video.play();
+   
         }
     };
     reader.readAsArrayBuffer(file);
@@ -30,8 +32,8 @@ var process = function (uInt8Array) {
 
 mediaSource.addEventListener('sourceopen', success, false);
 
-var chunkId = 0;
-var lastChunkId = 0;
+var chunkId = 1478647533;
+var lastChunkId = 1478647533;
 var delay = 1000;
 var min_delay = 9000;
 var max_delay = 20000;
@@ -45,8 +47,7 @@ function getMoreChunks(){
     } else {
         delay = min_delay;
     }*/
-    console.log("GON: "+delay+" "+chunkId+" "+lastChunkId);
-    setTimeout(function (){ GET(channel, process) },delay);
+    //setTimeout(function (){ GET(channel, process) },delay);
     lastChunkId = chunkId;
 }
 

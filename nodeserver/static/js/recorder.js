@@ -49,7 +49,7 @@ function handleStart(event) {
 
 function startRecording() {
   recordedBlobs = [];
-  var options = {mimeType: 'video/webm;codecs=vp8,opus'};
+  var options = {mimeType: 'video/webm;codecs="vp8"'};
   try {
     mediaRecorder = new MediaRecorder(window.stream, options);
   } catch (e) {
