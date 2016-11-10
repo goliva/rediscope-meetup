@@ -32,11 +32,11 @@ function getChannelNameFromUrl(url){
 }
 
 function getLastFile(channelName){
-  var last_tms = 1100000210;
+  var last_tms = 0;
   fs.readdirSync("content/"+channelName).filter(function(file) {
     if(file.substring(file.length-5, file.length) === ".webm"){
       var tms = file.substring(0,file.length-5);//5 de (video)... y 5 de ...(.webm)
-      if (parseInt(tms) < parseInt(last_tms)){
+      if (parseInt(tms) > parseInt(last_tms)){
         last_tms = tms;
       }  
     }
@@ -156,6 +156,10 @@ server.get('/recorder',function(req,res){
     res.sendFile(__dirname + '/views/recorder.html');
 });
 
+server.get('/mock',function(req,res){
+    res.sendFile(__dirname + '/views/mock.html');
+});
+
 server.get('/styles.css',function(req,res){
     res.sendFile(__dirname + '/static/css/styles.css');
 });
@@ -170,6 +174,10 @@ server.get('/recorder.js',function(req,res){
 
 server.get('/video.js',function(req,res){
     res.sendFile(__dirname + '/static/js/video.js');
+});
+
+server.get('/get-stream.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/get-stream.js');
 });
 
 server.get('/modernizr.min.js',function(req,res){
@@ -226,7 +234,6 @@ server.get('/getwebm/:channel/:id',function(req,res){
               'Access-Control-Allow-Origin':'*',
               'Access-Control-Allow-Credentials':true
           });
-
           var readStream = fs.createReadStream(filePath);
           // We replaced all the event handlers with a simple call to readStream.pipe()
           readStream.pipe(res);  

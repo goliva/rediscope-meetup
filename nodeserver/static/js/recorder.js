@@ -68,19 +68,5 @@ function stopRecording() {
   mediaRecorder.stop();
 }
 
-function download(blob) {
-  var url = window.URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.style.display = 'none';
-  a.href = url;
-  a.download = 'test.webm';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function() {
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  }, 100);
-}
-
 init();
 navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
