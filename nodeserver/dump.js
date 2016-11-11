@@ -3,12 +3,12 @@ var fs = require("fs");
 path = require('path');
 
 var videoPublisher = redis.createClient();
-var videoSubscriber = redis.createClient(6379);
+var videoSubscriber = redis.createClient({'return_buffers': true});
 
 videoSubscriber.subscribe("channels");
 
 videoSubscriber.on("message", function(channel, data) {
-  if(channel === "channels"){
+  if(channel == "channels"){
     videoSubscriber.subscribe(data);    
   }else{
     var milliseconds = new Date().getTime();
@@ -16,7 +16,8 @@ videoSubscriber.on("message", function(channel, data) {
     if (!fs.existsSync("content/"+channel)){
       fs.mkdirSync("content/"+channel);
     }
-    fs.writeFile("content/"+channel+"/"+seconds+".webm", data, "base64", function(err) {});
-    videoPublisher.publish("process",channel);
+    var filename = "content/"+channel+"/"+seconds+"_640x480.webm";
+    fs.writeFile(filename, data, "binary", function(err) {});
+    videoPublisher.publish("process",filename);
   }
 });

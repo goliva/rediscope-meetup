@@ -61,7 +61,7 @@ function startRecording() {
   mediaRecorder.onstop = handleStop;
   mediaRecorder.onstart = handleStart;
   mediaRecorder.ondataavailable = handleDataAvailable;
-  mediaRecorder.start(1000); // collect 10ms of data
+  mediaRecorder.start(10000); // collect 10ms of data
 }
 
 function stopRecording() {

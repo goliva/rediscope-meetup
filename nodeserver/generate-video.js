@@ -8,47 +8,10 @@ var videoSubscriber = redis.createClient(6379);
 
 videoSubscriber.subscribe("process");
 
-var flag = false;
-
 videoSubscriber.on("message", function(channel, data) {
-	console.log("llaman");
-	if (flag){
-		console.log("no hago nada");
-	}else{
-		console.log("a la carga!");
-		flag=true;
 		var milliseconds = new Date().getTime();
-  var seconds = parseInt(milliseconds/10000);
-  fs.readdirSync("content/"+data).filter(function(file) {
-  	if (file !== "content_"+seconds && file.substring(file.length-5, file.length) !== ".webm"){
-  		console.log("generando para "+file);
-  		var cmd = "ffmpeg -framerate 8 -pattern_type glob -i content/"+data+"/"+file+"'/*.jpeg' -s 320x240 content/"+data+"/video"+file.substring(8)+".webm";
-  		exec(cmd, function(error, stdout, stderr){
-  			if(error == null){
-  				var milliseconds2 = new Date().getTime();
-  				console.log("todo ok: "+(milliseconds2-milliseconds));
-  				deleteFolderRecursive("content/"+data+"/"+file);
-  				flag=false;
-  			}
-
-  		});
-  	}
-
-  });
-	}
+    var seconds = parseInt(milliseconds/10000);
+    var cmd = "ffmpeg -i '"+data+"' -s 320x240 -crf 51 -preset ultrafast "+data.replace("640x480", "320x240");;
+    exec(cmd, function(error, stdout, stderr){});
   
 });
-
-var deleteFolderRecursive = function(path) {
-  if( fs.existsSync(path) ) {
-    fs.readdirSync(path).forEach(function(file,index){
-      var curPath = path + "/" + file;
-      if(fs.lstatSync(curPath).isDirectory()) { // recurse
-        deleteFolderRecursive(curPath);
-      } else { // delete file
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
-};
