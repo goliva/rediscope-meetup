@@ -22,7 +22,7 @@ function getLastFile(channelName){ //TODO mejorarlo
   var last_tms = 0;
   fs.readdirSync("content/"+channelName).filter(function(file) {
     if(file.substring(file.length-5, file.length) === ".webm"){
-      var tms = file.substring(0,file.length-5);//5 de (video)... y 5 de ...(.webm)
+      var tms = file.substring(0, file.indexOf("_"));
       if (parseInt(tms) > parseInt(last_tms)){
         last_tms = tms;
       }  
