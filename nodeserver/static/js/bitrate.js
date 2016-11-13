@@ -1,20 +1,18 @@
-var timeOfChunkVideo = 10;
-var interval = 5;
+var timeOfChunkVideo = 10000; // because I know the chunks are from 10 seconds video
 var lastThreeCalls = [];
-var buffer = [];
 
 function calculateAVGResponseTime(){
 	var totalTime = 0;
 	lastThreeCalls.forEach(function(time) {
 	    totalTime += time;
 	});
-	return totalTime/3;
+	return totalTime/lastThreeCalls.length;
 }
 
 function itsNecessary(){
 	var avgTime = calculateAVGResponseTime();
-	if (avgTime < interval && interval < timeOfChunkVideo){
-		if (buffer.length > 3){
+	if (avgTime < delay && delay < timeOfChunkVideo){
+		if (parent.buffer.length > 3){
 			return false;
 		} else {
 			return true;
@@ -22,4 +20,11 @@ function itsNecessary(){
 	} else {
 		return true;
 	}
+}
+
+function addCallResponseTime(newTime){
+	if (lastThreeCalls.length > 2){
+		lastThreeCalls.shift();	
+	}
+	lastThreeCalls.push(newTime);
 }

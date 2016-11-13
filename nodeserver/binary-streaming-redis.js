@@ -115,6 +115,10 @@ server.get('/get-stream.js',function(req,res){
     res.sendFile(__dirname + '/static/js/get-stream.js');
 });
 
+server.get('/bitrate.js',function(req,res){
+    res.sendFile(__dirname + '/static/js/bitrate.js');
+});
+
 server.get('/modernizr.min.js',function(req,res){
     res.sendFile(__dirname + '/static/js/modernizr.min.js');
 });

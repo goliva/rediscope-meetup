@@ -6,7 +6,7 @@ var process = function (uInt8Array) {
 
 }
 
-var chunkId = 0;
+var chunkId = 147906604;
 var definitions = ["320x240","640x480"];
 var delay = 1000;
 var min_delay = 9000;
@@ -17,32 +17,29 @@ function getResolution(){
 }
 
 function GET(channelName, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', "/getwebm/"+channelName+"/"+chunkId+"_"+getResolution(), true);
-  xhr.responseType = 'arraybuffer';
-  xhr.send();
-
-  
-  
-  xhr.onload = function(e) {
-    if (xhr.status == 404) {
-        if (xhr.reponse != "greater"){
-          getLastId(channelName);
-        }
-    } else if (xhr.status != 200) {
-      console.error("Unexpected status code " + xhr.status + " for getWebm");
-      return false;
-    } else {
+  if (itsNecessary()){
+    var start_time = new Date().getTime();
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', "/getwebm/"+channelName+"/"+chunkId+"_"+getResolution(), true);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
+    xhr.onload = function(e) {
+      if (xhr.status == 404) {
+          if (xhr.reponse != "greater"){
+            getLastId(channelName);
+          }
+      } else if (xhr.status != 200) {
+        console.error("Unexpected status code " + xhr.status + " for getWebm");
+        return false;
+      } else {
+        addCallResponseTime(new Date().getTime() - start_time);
         chunkId++;
         callback(new Uint8Array(xhr.response));
-    }
-    
-    setTimeout(function (){ GET(parent.channel, process) },delay);
-
-    
-    
-  };
-  
+      }
+    };
+  } else {
+    console.log("not going "+parent.buffer.length);
+  }
 }
 
 function getLastId(channelName){
@@ -63,4 +60,4 @@ function getLastId(channelName){
     }
 }
 
-GET(parent.channel, process);
+setInterval(function () {GET(parent.channel, process)},delay);
