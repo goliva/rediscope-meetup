@@ -7,14 +7,9 @@ var process = function (uInt8Array) {
 }
 
 var chunkId = 147906604;
-var definitions = ["320x240","640x480"];
 var delay = 1000;
 var min_delay = 9000;
 var max_delay = 20000;
-
-function getResolution(){
-  return definitions[0];
-}
 
 function GET(channelName, callback) {
   if (itsNecessary()){
@@ -36,9 +31,11 @@ function GET(channelName, callback) {
         chunkId++;
         callback(new Uint8Array(xhr.response));
       }
+      setTimeout(function () {GET(parent.channel, process)},delay);
     };
   } else {
     console.log("not going "+parent.buffer.length);
+    setTimeout(function () {GET(parent.channel, process)},delay);
   }
 }
 
@@ -60,4 +57,4 @@ function getLastId(channelName){
     }
 }
 
-setInterval(function () {GET(parent.channel, process)},delay);
+GET(parent.channel, process);
