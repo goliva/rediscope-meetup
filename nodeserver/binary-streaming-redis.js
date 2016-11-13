@@ -9,6 +9,7 @@ path = require('path');
 
 var videoServer = new BinaryServer({server: server, path: '/video-server', port:4705});
 var videoPublisher = redis.createClient({'return_buffers': true});
+var redisCli = redis.createClient();
 
 var SERVER_PORT = 8080;
 
@@ -18,18 +19,16 @@ function getChannelNameFromUrl(url){
   return url.split('?')[1].split('=')[1];
 }
 
-function getLastFile(channelName){ //TODO mejorarlo
-  var last_tms = 0;
-  fs.readdirSync("content/"+channelName).filter(function(file) {
-    if(file.substring(file.length-5, file.length) === ".webm"){
-      var tms = file.substring(0, file.indexOf("_"));
-      if (parseInt(tms) > parseInt(last_tms)){
-        last_tms = tms;
-      }  
-    }
-    
+server.get('/getwebm/:channel/last-id/:resolution',function(req,res){
+  redisCli.get(req.params.channel+"_"+req.params.resolution, function(err, reply) {
+    res.status(200).send(reply);
   });
-  return last_tms;
+
+});
+
+function getLastFileID(channelName, resolution){ //TODO mejorarlo
+  
+  
 }
 
 //GET VIDEO FROM BROWSER AND PUBLISH TO REDIS
@@ -52,6 +51,41 @@ videoServer.on('connection', function(client){
     });
   });
 });
+
+server.get('/getwebm/:channel/:id',function(req,res){
+    var channelName = req.params.channel;
+    var id = req.params.id;
+    var tms = id.split("_")[0];
+    var resolution = id.split("_")[1];
+    redisCli.get(channelName+"_"+resolution, function(err, last_from_channel) {
+      if (parseInt(last_from_channel) <= parseInt(tms)){
+        res.status(404).send('greater');
+      }else {
+        var file_path = "content/"+channelName;
+        var file_name = id+".webm";
+        fs.stat(file_path+"/"+file_name, function(err, stat) {
+            if(err != null && err.code == 'ENOENT') {
+                res.status(404).send('Not found');
+            } else if(err != null) {
+                console.error('Some other error: ', err.code);
+            } else{
+              var filePath = path.join(file_path,file_name);
+              var stat = fs.statSync(filePath);
+
+              res.writeHead(200, {
+                  'Content-Type': 'video/webm',
+                  'Content-Length': stat.size,
+                  'Access-Control-Allow-Origin':'*',
+                  'Access-Control-Allow-Credentials':true
+              });
+              var readStream = fs.createReadStream(filePath);
+              readStream.pipe(res);  
+            }
+            
+        });
+      }
+    });    
+});  
 
 server.get('/recorder',function(req,res){
     res.sendFile(__dirname + '/views/recorder.html');
@@ -100,38 +134,5 @@ server.get('/video',function(req,res){
 server.get('/',function(req,res){
     res.sendFile(__dirname + '/views/index.html');
 });
-
-server.get('/getwebm/:channel/last-id',function(req,res){
-  res.status(200).send(getLastFile(req.params.channel));
-});
-
-server.get('/getwebm/:channel/:id',function(req,res){
-    var channelName = req.params.channel;
-    var id = req.params.id;
-
-    var file_path = "content/"+channelName;
-    var file_name = id+".webm";
-    fs.stat(file_path+"/"+file_name, function(err, stat) {
-        if(err != null && err.code == 'ENOENT') {
-            res.status(404).send('Not found');
-        } else if(err != null) {
-            console.error('Some other error: ', err.code);
-        } else{
-          var filePath = path.join(file_path,file_name);
-          var stat = fs.statSync(filePath);
-
-          res.writeHead(200, {
-              'Content-Type': 'video/webm',
-              'Content-Length': stat.size,
-              'Access-Control-Allow-Origin':'*',
-              'Access-Control-Allow-Credentials':true
-          });
-          var readStream = fs.createReadStream(filePath);
-          readStream.pipe(res);  
-        }
-        
-    });
-    
-});  
 
 server.listen(SERVER_PORT);

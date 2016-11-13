@@ -18,6 +18,8 @@ videoSubscriber.on("message", function(channel, data) {
     }
     var filename = "content/"+channel+"/"+seconds+"_640x480.webm";
     fs.writeFile(filename, data, "binary", function(err) {});
+    videoPublisher.set(channel+"_640x480",seconds);
+    videoPublisher.expire(channel+"_640x480", 190);
     videoPublisher.publish("process",filename);
   }
 });
